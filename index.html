@@ -22,12 +22,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .screen{display:none;}
 .screen.active{display:flex;flex-direction:column;min-height:100dvh;}
 
-/* ── SETUP BANNER ── */
-#setup-banner{background:linear-gradient(135deg,#E65100,#BF360C);color:#fff;padding:12px 16px;font-size:0.75rem;line-height:1.6;display:none;align-items:flex-start;gap:10px;}
-#setup-banner i{margin-top:2px;flex-shrink:0;}
-#setup-banner a{color:#FFD180;font-weight:700;}
-#setup-banner.show{display:flex;}
-
 /* ── AUTH ── */
 #screen-auth{background:linear-gradient(160deg,var(--dark) 0%,var(--mid) 50%,#0D4A3A 100%);align-items:center;justify-content:center;padding:32px 20px;}
 .auth-logo{margin-bottom:24px;text-align:center;}
@@ -312,16 +306,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <p id="loading-text">Menghubungkan ke database...</p>
 </div>
 
-<!-- SETUP BANNER -->
-<div id="setup-banner">
-  <i class="fa-solid fa-triangle-exclamation"></i>
-  <div>
-    <b>URL Database belum dikonfigurasi.</b><br>
-    Buka file HTML ini, cari <code>APPS_SCRIPT_URL</code> dan isi dengan URL deployment Apps Script Anda.<br>
-    <a href="#" onclick="openModal('modal-setup')">Lihat panduan setup →</a>
-  </div>
-</div>
-
 <!-- AUTH SCREEN -->
 <div id="screen-auth" class="screen active">
   <div class="auth-logo">
@@ -589,7 +573,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div class="sc-head">⚙️ Menu</div>
       <div class="si" onclick="openEditProfil()"><div class="sil"><i class="fa-solid fa-user-pen"></i> Edit Profil</div><i class="fa-solid fa-angle-right chev"></i></div>
       <div class="si" id="si-qr" onclick="goTab('scan')"><div class="sil"><i class="fa-solid fa-id-card-clip"></i> Lihat QR Kartu Anggota</div><span class="si-badge">QR</span></div>
-      <div class="si" onclick="openModal('modal-setup')"><div class="sil"><i class="fa-solid fa-database"></i> Konfigurasi Database</div><span class="si-badge blue">Setup</span></div>
       <div class="si" onclick="openModal('modal-bantuan')"><div class="sil"><i class="fa-solid fa-headset"></i> Bantuan &amp; Support</div><span class="si-badge purple">Info</span></div>
       <div class="si" onclick="openModal('modal-tentang')"><div class="sil"><i class="fa-solid fa-circle-info"></i> Tentang Aplikasi</div><span class="si-badge orange">v3.0</span></div>
       <div class="si danger" onclick="doLogout()"><div class="sil"><i class="fa-solid fa-power-off"></i> Keluar dari Akun</div></div>
@@ -637,30 +620,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- MODALS -->
-<!-- Setup Database -->
-<div class="modal-bg" id="modal-setup">
-  <div class="modal-sheet" style="position:relative">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('modal-setup')"><i class="fa-solid fa-xmark"></i></button>
-    <h3>🔧 Konfigurasi Database</h3>
-    <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:14px;padding:14px;margin-bottom:16px;font-size:0.75rem;line-height:1.8;color:#1B5E20;">
-      <b>Langkah Setup:</b><br>
-      1. Buka <b>Google Sheets</b> → buat spreadsheet baru<br>
-      2. Klik <b>Extensions → Apps Script</b><br>
-      3. Hapus kode default, paste kode dari file <code>apps-script-backend.js</code><br>
-      4. Klik <b>Deploy → New Deployment</b><br>
-      5. Pilih type: <b>Web App</b> → Execute as: <b>Me</b> → Who has access: <b>Anyone</b><br>
-      6. Copy URL deployment, paste di bawah ini<br>
-      7. Klik <b>Simpan & Init</b>
-    </div>
-    <div class="field"><label>Apps Script Deployment URL</label>
-      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/...">
-    </div>
-    <button class="btn-submit" onclick="saveAndInitDB()"><i class="fa-solid fa-database"></i> Simpan &amp; Init Database</button>
-    <div id="setup-status" style="margin-top:12px;font-size:0.75rem;color:var(--muted);display:none;"></div>
-  </div>
-</div>
-
 <!-- Edit Profil -->
 <div class="modal-bg" id="modal-profil">
   <div class="modal-sheet" style="position:relative">
@@ -731,12 +690,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <!-- ══════════════ SCRIPT ══════════════ -->
 <script>
 // ═══════════════════════════════════════════════════════
-// KONFIGURASI — ISI URL DI BAWAH INI SETELAH SETUP
+// KONFIGURASI — URL DATABASE (SUDAH TERKONFIGURASI)
 // ═══════════════════════════════════════════════════════
-let APPS_SCRIPT_URL = localStorage.getItem("ttc_api_url") || "";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw55xb5xQ9SIq7cyyVs9hPrSAqzWq7z_77bN_EcuWUaOJ9NKgAA6E7zTv6lXyLQy4wA/exec";
 
 // ═══════════════════════════════════════════════════════
-// AKUN PETUGAS (tetap di file untuk keamanan login)
+// AKUN PETUGAS
 // ═══════════════════════════════════════════════════════
 const PETUGAS_ACCOUNTS = [
   { id: "ADM01", pass: "petugas123", nama: "Admin OSIS",      jabatan: "Ketua OSIS" },
@@ -744,7 +703,7 @@ const PETUGAS_ACCOUNTS = [
 ];
 
 // ═══════════════════════════════════════════════════════
-// WASTE DATA (statis, tidak perlu database)
+// WASTE DATA
 // ═══════════════════════════════════════════════════════
 const WASTE_DATA = {
   plastik: [
@@ -791,7 +750,6 @@ const WASTE_DATA = {
 let currentUser = null;
 let authMode    = "login";
 let authRole    = "murid";
-let isOnline    = false;
 
 // ═══════════════════════════════════════════════════════
 // HASH
@@ -806,7 +764,6 @@ function simpleHash(str) {
 // API LAYER
 // ═══════════════════════════════════════════════════════
 async function api(action, params = {}) {
-  if (!APPS_SCRIPT_URL) throw new Error("URL belum dikonfigurasi");
   const url = APPS_SCRIPT_URL + "?action=" + action + "&" + new URLSearchParams(params);
   const res = await fetch(url, { redirect: "follow" });
   const json = await res.json();
@@ -815,7 +772,6 @@ async function api(action, params = {}) {
 }
 
 async function apiPost(body) {
-  if (!APPS_SCRIPT_URL) throw new Error("URL belum dikonfigurasi");
   const res = await fetch(APPS_SCRIPT_URL, {
     method: "POST",
     redirect: "follow",
@@ -834,11 +790,10 @@ function setSyncStatus(state) {
   dot.className   = "sync-dot " + state;
   const map = { online: "Terhubung", syncing: "Sinkronisasi...", "": "Offline" };
   label.textContent = map[state] || "–";
-  isOnline = state === "online";
 }
 
 // ═══════════════════════════════════════════════════════
-// SESSION (localStorage, tanpa data sensitif)
+// SESSION
 // ═══════════════════════════════════════════════════════
 function saveSession(u) { localStorage.setItem("ttc_session", JSON.stringify(u)); }
 function clearSession()  { localStorage.removeItem("ttc_session"); }
@@ -852,32 +807,6 @@ function showLoading(msg) {
   document.getElementById("loading-overlay").classList.add("show");
 }
 function hideLoading() { document.getElementById("loading-overlay").classList.remove("show"); }
-
-// ═══════════════════════════════════════════════════════
-// SETUP DATABASE
-// ═══════════════════════════════════════════════════════
-async function saveAndInitDB() {
-  const url = (document.getElementById("setup-url").value || "").trim();
-  if (!url.startsWith("https://script.google.com")) {
-    return showToast("URL tidak valid. Harus diawali https://script.google.com", "error");
-  }
-  APPS_SCRIPT_URL = url;
-  localStorage.setItem("ttc_api_url", url);
-  const statusEl = document.getElementById("setup-status");
-  statusEl.style.display = "";
-  statusEl.textContent = "⏳ Menginisialisasi sheets...";
-  try {
-    const r = await api("init");
-    statusEl.textContent = "✅ " + r.message;
-    showToast("Database berhasil dikonfigurasi!", "success");
-    document.getElementById("setup-banner").classList.remove("show");
-    closeModal("modal-setup");
-    setSyncStatus("online");
-  } catch(e) {
-    statusEl.textContent = "❌ Error: " + e.message;
-    showToast("Gagal: " + e.message, "error");
-  }
-}
 
 // ═══════════════════════════════════════════════════════
 // AUTH MODE
@@ -917,9 +846,6 @@ function updateRegView() {
 // LOGIN
 // ═══════════════════════════════════════════════════════
 async function doLogin() {
-  if (!APPS_SCRIPT_URL && authRole === "murid") {
-    return showToast("Setup database dulu di menu Akun → Konfigurasi Database", "error");
-  }
   const btn = document.getElementById("btn-login");
   btn.disabled = true;
 
@@ -963,7 +889,6 @@ async function doLogin() {
 // REGISTER
 // ═══════════════════════════════════════════════════════
 async function doRegister() {
-  if (!APPS_SCRIPT_URL) return showToast("Setup database dulu!", "error");
   const nama  = (document.getElementById("r-nama").value  || "").trim();
   const nisn  = (document.getElementById("r-nisn").value  || "").trim();
   const kelas = (document.getElementById("r-kelas").value || "").trim();
@@ -1003,7 +928,7 @@ function launchApp() {
   populateUI();
   initSlider();
   renderWasteCards();
-  if (APPS_SCRIPT_URL) setSyncStatus("online");
+  setSyncStatus("online");
   renderRanking();
   renderActivity();
 }
@@ -1064,10 +989,9 @@ function populateUI() {
 }
 
 // ═══════════════════════════════════════════════════════
-// PETUGAS STATS (dari API)
+// PETUGAS STATS
 // ═══════════════════════════════════════════════════════
 async function loadPetugasStats() {
-  if (!APPS_SCRIPT_URL) return;
   try {
     setSyncStatus("syncing");
     const r = await api("getStats");
@@ -1097,10 +1021,9 @@ function renderQR(text) {
 }
 
 // ═══════════════════════════════════════════════════════
-// RANKING (dari API)
+// RANKING
 // ═══════════════════════════════════════════════════════
 async function renderRanking() {
-  if (!APPS_SCRIPT_URL) return;
   try {
     const r    = await api("getRanking");
     const users = r.ranking || [];
@@ -1132,10 +1055,10 @@ async function renderRanking() {
 }
 
 // ═══════════════════════════════════════════════════════
-// ACTIVITY LOG (dari API)
+// ACTIVITY LOG
 // ═══════════════════════════════════════════════════════
 async function renderActivity() {
-  if (!currentUser || currentUser.role === "petugas" || !APPS_SCRIPT_URL) return;
+  if (!currentUser || currentUser.role === "petugas") return;
   try {
     const r      = await api("getTrx", { nisn: currentUser.nisn });
     const trxList = r.transaksi || [];
@@ -1171,7 +1094,7 @@ async function renderActivity() {
 // ═══════════════════════════════════════════════════════
 async function renderMuridList() {
   const wrap = document.getElementById("murid-list-wrap");
-  if (!wrap || !APPS_SCRIPT_URL) return;
+  if (!wrap) return;
   try {
     const r     = await api("getUsers");
     const users = (r.users || []).sort((a, b) => b.poin - a.poin);
@@ -1209,7 +1132,6 @@ async function submitSetoran() {
 
   if (!nisn)              return showToast("NISN murid wajib diisi!", "error");
   if (!weight || weight <= 0) return showToast("Masukkan berat yang valid!", "error");
-  if (!APPS_SCRIPT_URL)   return showToast("Database belum dikonfigurasi!", "error");
 
   const hargaMap = { "PETE":5000, "HDPE":4500, "PP":4000, "LDPE":3500, "Kardus":2000, "HVS":2500, "Koran":1800 };
   const poinMap  = { "PETE":15,   "HDPE":13,   "PP":12,   "LDPE":10,   "Kardus":6,    "HVS":7,    "Koran":5 };
@@ -1248,7 +1170,6 @@ async function submitSetoran() {
 // EXPORT XLSX
 // ═══════════════════════════════════════════════════════
 async function exportXLSX() {
-  if (!APPS_SCRIPT_URL) return showToast("Database belum dikonfigurasi!", "error");
   showLoading("Mengambil data dari Google Sheets...");
   try {
     const [usersRes, trxRes] = await Promise.all([api("getUsers"), api("getAllTrx")]);
@@ -1257,7 +1178,6 @@ async function exportXLSX() {
 
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Rekap Murid
     const muridRows = [["NISN","Nama","Kelas","Saldo (Rp)","Berat (Kg)","Poin","Terdaftar"]];
     users.sort((a,b) => b.poin - a.poin).forEach(u => {
       muridRows.push([u.nisn, u.nama, u.kelas, u.saldo, u.berat, u.poin,
@@ -1267,7 +1187,6 @@ async function exportXLSX() {
     ws1["!cols"] = [{wch:14},{wch:24},{wch:12},{wch:14},{wch:12},{wch:8},{wch:14}];
     XLSX.utils.book_append_sheet(wb, ws1, "Rekap Murid");
 
-    // Sheet 2: Semua Transaksi
     const trxRows = [["ID","NISN","Nama","Jenis Sampah","Berat (Kg)","Nilai (Rp)","Poin","Petugas","Waktu"]];
     trx.forEach(t => {
       trxRows.push([t.id, t.nisn, t.nama, t.jenis, t.berat, t.nilai, t.poin, t.petugas,
@@ -1277,7 +1196,6 @@ async function exportXLSX() {
     ws2["!cols"] = [{wch:20},{wch:14},{wch:22},{wch:30},{wch:10},{wch:12},{wch:7},{wch:10},{wch:20}];
     XLSX.utils.book_append_sheet(wb, ws2, "Transaksi");
 
-    // Sheet 3: Ranking
     const rankRows = [["Rank","Nama","Kelas","Poin","Berat (Kg)","Saldo (Rp)"]];
     users.forEach((u, i) => {
       rankRows.push([i+1, u.nama, u.kelas, u.poin, u.berat, u.saldo]);
@@ -1419,7 +1337,7 @@ async function saveProfile() {
   const nama  = (document.getElementById("edit-nama").value  || "").trim();
   const kelas = (document.getElementById("edit-kelas").value || "").trim();
   if (!nama) return showToast("Nama tidak boleh kosong!", "error");
-  if (currentUser.role === "murid" && APPS_SCRIPT_URL) {
+  if (currentUser.role === "murid") {
     showLoading("Menyimpan profil...");
     try {
       await apiPost({ action:"updateUser", nisn: currentUser.nisn, nama, kelas });
@@ -1497,22 +1415,15 @@ function showToast(msg, type="") {
 // AUTO LOGIN
 // ═══════════════════════════════════════════════════════
 window.addEventListener("DOMContentLoaded", async () => {
-  // Cek URL API
-  if (!APPS_SCRIPT_URL) {
-    document.getElementById("setup-banner").classList.add("show");
-  } else {
-    // Ping API
-    try {
-      await api("getStats");
-      setSyncStatus("online");
-    } catch(e) {
-      setSyncStatus("");
-    }
+  // Ping database di background
+  try {
+    await api("getStats");
+    setSyncStatus("online");
+  } catch(e) {
+    setSyncStatus("");
   }
 
-  // Pre-fill setup URL jika sudah ada
-  document.getElementById("setup-url").value = APPS_SCRIPT_URL;
-
+  // Coba pulihkan sesi
   const session = getSession();
   if (session?.nama) {
     if (session.role === "petugas") {
@@ -1523,7 +1434,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         launchApp();
         return;
       }
-    } else if (session.role === "murid" && APPS_SCRIPT_URL) {
+    } else if (session.role === "murid") {
       try {
         showLoading("Memulihkan sesi...");
         const r = await api("getUser", { nisn: session.nisn });
