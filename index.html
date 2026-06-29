@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --g1:#00C853; --g2:#00897B; --acc:#FFD600; --acc2:#00BCD4;
@@ -18,11 +19,16 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100dvh;max-width:430px;margin:0 auto;}
-
 .screen{display:none;}
 .screen.active{display:flex;flex-direction:column;min-height:100dvh;}
 
-/* ── AUTH SCREEN ── */
+/* ── SETUP BANNER ── */
+#setup-banner{background:linear-gradient(135deg,#E65100,#BF360C);color:#fff;padding:12px 16px;font-size:0.75rem;line-height:1.6;display:none;align-items:flex-start;gap:10px;}
+#setup-banner i{margin-top:2px;flex-shrink:0;}
+#setup-banner a{color:#FFD180;font-weight:700;}
+#setup-banner.show{display:flex;}
+
+/* ── AUTH ── */
 #screen-auth{background:linear-gradient(160deg,var(--dark) 0%,var(--mid) 50%,#0D4A3A 100%);align-items:center;justify-content:center;padding:32px 20px;}
 .auth-logo{margin-bottom:24px;text-align:center;}
 .auth-logo .logo-mark{width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,var(--g1),var(--acc));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px;box-shadow:0 12px 32px rgba(0,200,83,0.35);}
@@ -45,12 +51,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .fg input:focus,.fg select:focus{border-color:var(--g1);}
 .fg input::placeholder{color:rgba(255,255,255,0.25);}
 .fg select option{background:var(--dark);color:#fff;}
-.btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,var(--g1),#00A846);border:none;border-radius:var(--radius-btn);color:#fff;font-size:0.9rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,200,83,0.35);margin-top:4px;font-family:inherit;}
+.btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,var(--g1),#00A846);border:none;border-radius:var(--radius-btn);color:#fff;font-size:0.9rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,200,83,0.35);margin-top:4px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-primary:active{transform:scale(0.98);}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
 .auth-switch{text-align:center;margin-top:16px;color:rgba(255,255,255,0.4);font-size:0.72rem;}
 .auth-switch span{color:var(--g1);cursor:pointer;font-weight:700;}
 .info-hint{background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:0.72rem;color:rgba(255,214,0,0.85);line-height:1.6;}
 .info-hint i{margin-right:6px;}
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(13,31,26,0.75);backdrop-filter:blur(6px);z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.loading-overlay.show{display:flex;}
+.spinner{width:44px;height:44px;border:3px solid rgba(0,200,83,0.2);border-top-color:var(--g1);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay p{color:#fff;font-size:0.82rem;font-weight:600;}
 
 /* ── APP SHELL ── */
 #screen-app{background:var(--bg);padding-bottom:80px;}
@@ -65,13 +79,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--danger);border:2px solid var(--bg);}
 .role-badge{padding:5px 12px;border-radius:20px;font-size:0.62rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;}
 .role-badge.pb{background:linear-gradient(135deg,#7C3AED,#4338CA);}
-
-/* ── TAB PAGES ── */
 .tab-page{display:none;padding:20px;}
 .tab-page.active{display:block;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-/* ── DETAIL PAGE ── */
+/* ── DETAIL ── */
 #screen-detail{background:var(--bg);padding-bottom:80px;}
 .detail-hero{position:relative;height:220px;overflow:hidden;}
 .detail-hero img{width:100%;height:100%;object-fit:cover;}
@@ -98,7 +110,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .page-head h2{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;}
 .page-head p{font-size:0.75rem;color:var(--muted);margin-top:3px;}
 
-/* ── WALLET CARD ── */
+/* ── WALLET ── */
 .wallet-card{background:linear-gradient(145deg,var(--dark) 0%,#1A3A30 60%,#0D2E24 100%);border-radius:24px;padding:24px;position:relative;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.22);margin-bottom:20px;}
 .wallet-card::before{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,83,0.18) 0%,transparent 70%);top:-60px;right:-40px;pointer-events:none;}
 .wallet-card::after{content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(0,188,212,0.12) 0%,transparent 70%);bottom:-30px;left:20px;pointer-events:none;}
@@ -118,7 +130,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .wab:hover .iw{background:var(--g1);border-color:var(--g1);}
 .wab span{font-size:0.65rem;font-weight:600;color:rgba(255,255,255,0.6);}
 
-/* ── STATS (petugas) ── */
+/* ── STATS ── */
 .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
 .stat-card .sc-num{font-size:1.6rem;font-weight:900;letter-spacing:-0.03em;line-height:1;}
@@ -198,6 +210,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .empty-state h3{font-size:0.9rem;font-weight:700;margin-bottom:6px;}
 .empty-state p{font-size:0.75rem;color:var(--muted);line-height:1.6;}
 
+/* ── EXPORT BTN ── */
+.btn-export{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:#fff;border:1.5px solid var(--g1);border-radius:12px;color:var(--g1);font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-export:hover{background:var(--g1);color:#fff;}
+
 /* ── INPUT FORM ── */
 .input-form{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
 .input-form h3{font-size:0.9rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:7px;}
@@ -205,8 +221,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .field label{display:block;font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;}
 .field input,.field select{width:100%;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;font-size:0.85rem;font-family:inherit;color:var(--dark);outline:none;transition:border-color .2s;appearance:none;}
 .field input:focus,.field select:focus{border-color:var(--g1);background:#fff;}
-.btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,var(--g1),#00A846);border:none;border-radius:var(--radius-btn);color:#fff;font-size:0.88rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(0,200,83,0.3);transition:all .25s;margin-top:4px;font-family:inherit;}
+.btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,var(--g1),#00A846);border:none;border-radius:var(--radius-btn);color:#fff;font-size:0.88rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(0,200,83,0.3);transition:all .25s;margin-top:4px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-submit:active{transform:scale(0.98);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
 
 /* ── QR CARD ── */
 .qr-member-card{background:linear-gradient(145deg,var(--dark),#1A3A30);border-radius:22px;padding:24px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg);}
@@ -220,11 +237,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .log-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;gap:12px;margin-bottom:10px;}
 .log-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
 .log-icon.plus{background:#E8F5E9;color:var(--g1);}
-.log-icon.minus{background:#E3F2FD;color:#1976D2;}
 .log-body{flex:1;}
 .log-row{display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;}
 .log-val.plus{color:var(--g1);}
-.log-val.minus{color:#1976D2;}
 .log-desc{font-size:0.7rem;color:var(--muted);margin-top:3px;}
 .log-time{font-size:0.65rem;color:#B0BEC5;margin-top:6px;}
 
@@ -267,7 +282,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .nav-item span{font-size:0.58rem;font-weight:700;letter-spacing:-0.01em;}
 
 /* ── TOAST ── */
-.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--dark);color:#fff;padding:12px 20px;border-radius:30px;font-size:0.78rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--dark);color:#fff;padding:12px 20px;border-radius:30px;font-size:0.78rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.success{background:var(--g1);}
 .toast.error{background:var(--danger);}
@@ -281,14 +296,33 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .modal-sheet h3{font-size:1rem;font-weight:800;margin-bottom:16px;}
 .modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);}
 
-/* ── SECURITY WARNING ── */
-.sec-warn{background:#FFF3E0;border:1px solid #FFCC80;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:0.72rem;color:#E65100;line-height:1.6;}
-.sec-warn i{margin-right:6px;}
+/* ── SYNC STATUS ── */
+.sync-bar{display:flex;align-items:center;gap:6px;font-size:0.65rem;color:var(--muted);padding:6px 0;margin-bottom:6px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#C5D0CC;}
+.sync-dot.online{background:var(--g1);}
+.sync-dot.syncing{background:var(--warn);animation:pulse .8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ AUTH SCREEN ══════════════ -->
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-text">Menghubungkan ke database...</p>
+</div>
+
+<!-- SETUP BANNER -->
+<div id="setup-banner">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  <div>
+    <b>URL Database belum dikonfigurasi.</b><br>
+    Buka file HTML ini, cari <code>APPS_SCRIPT_URL</code> dan isi dengan URL deployment Apps Script Anda.<br>
+    <a href="#" onclick="openModal('modal-setup')">Lihat panduan setup →</a>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
 <div id="screen-auth" class="screen active">
   <div class="auth-logo">
     <div class="logo-mark">♻️</div>
@@ -300,23 +334,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <button id="tab-login-btn" class="active" onclick="showAuthMode('login')">Masuk</button>
       <button id="tab-reg-btn" onclick="showAuthMode('register')">Daftar</button>
     </div>
-
-    <div class="role-select" id="auth-role-select">
+    <div class="role-select">
       <div class="role-opt sel" id="role-opt-murid" onclick="setAuthRole('murid')">
-        <div class="ro-icon">🎒</div>
-        <div class="ro-label">Murid</div>
+        <div class="ro-icon">🎒</div><div class="ro-label">Murid</div>
       </div>
       <div class="role-opt" id="role-opt-petugas" onclick="setAuthRole('petugas')">
-        <div class="ro-icon">🔧</div>
-        <div class="ro-label">Petugas</div>
+        <div class="ro-icon">🔧</div><div class="ro-label">Petugas</div>
       </div>
     </div>
-
     <div class="info-hint" id="petugas-hint" style="display:none">
-      <i class="fa-solid fa-circle-info"></i>Masuk sebagai Petugas menggunakan ID &amp; kode akses yang diberikan administrator sekolah.
+      <i class="fa-solid fa-circle-info"></i>Masuk sebagai Petugas menggunakan ID &amp; kode akses dari administrator.
     </div>
-
-    <!-- LOGIN FORM -->
+    <!-- LOGIN -->
     <div id="form-login">
       <div id="login-murid-fields">
         <div class="fg"><label>NISN</label><input type="text" id="l-nisn" placeholder="Nomor Induk Siswa Nasional" autocomplete="off"></div>
@@ -326,38 +355,46 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="fg"><label>ID Petugas</label><input type="text" id="l-petid" placeholder="Contoh: ADM01" autocomplete="off"></div>
         <div class="fg"><label>Kode Akses</label><input type="password" id="l-petpass" placeholder="Kode akses rahasia"></div>
       </div>
-      <button class="btn-primary" onclick="doLogin()">Masuk <i class="fa-solid fa-arrow-right" style="margin-left:6px"></i></button>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()">
+        <span>Masuk</span><i class="fa-solid fa-arrow-right"></i>
+      </button>
     </div>
-
-    <!-- REGISTER FORM -->
+    <!-- REGISTER -->
     <div id="form-register" style="display:none">
       <div id="reg-murid-fields">
         <div class="fg"><label>Nama Lengkap</label><input type="text" id="r-nama" placeholder="Nama sesuai rapor" autocomplete="off"></div>
         <div class="fg"><label>NISN</label><input type="text" id="r-nisn" placeholder="10 digit NISN" autocomplete="off"></div>
         <div class="fg"><label>Kelas</label><input type="text" id="r-kelas" placeholder="Contoh: 11 TEIA" autocomplete="off"></div>
         <div class="fg"><label>Kata Sandi</label><input type="password" id="r-pass" placeholder="Minimal 6 karakter"></div>
-        <div class="fg"><label>Konfirmasi Kata Sandi</label><input type="password" id="r-pass2" placeholder="Ulangi kata sandi"></div>
+        <div class="fg"><label>Konfirmasi</label><input type="password" id="r-pass2" placeholder="Ulangi kata sandi"></div>
       </div>
       <div id="reg-petugas-note" style="display:none">
         <div class="info-hint" style="text-align:center">
-          <i class="fa-solid fa-lock"></i> Akun Petugas dibuat oleh administrator sekolah. Hubungi OSIS / admin untuk mendapatkan akses.
+          <i class="fa-solid fa-lock"></i> Akun Petugas dibuat oleh administrator. Hubungi OSIS / admin untuk mendapatkan akses.
         </div>
       </div>
-      <button class="btn-primary" id="reg-submit-btn" onclick="doRegister()">Buat Akun <i class="fa-solid fa-user-plus" style="margin-left:6px"></i></button>
+      <button class="btn-primary" id="btn-register" onclick="doRegister()">
+        <span>Buat Akun</span><i class="fa-solid fa-user-plus"></i>
+      </button>
     </div>
-
     <div class="auth-switch" id="auth-switch-text">
       Belum punya akun? <span onclick="showAuthMode('register')">Daftar di sini</span>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ APP ══════════════ -->
+<!-- APP SCREEN -->
 <div id="screen-app" class="screen">
   <header class="app-header">
     <div class="hbrand">
       <div class="mark">♻️</div>
-      <div><div class="htitle">Trash<span>ToCash</span></div><div class="hsub">Eco School Platform</div></div>
+      <div>
+        <div class="htitle">Trash<span>ToCash</span></div>
+        <div class="hsub">
+          <span class="sync-dot" id="sync-dot"></span>
+          <span id="sync-label">–</span>
+        </div>
+      </div>
     </div>
     <div class="hactions">
       <div class="icon-btn" onclick="openModal('modal-notif')"><i class="fa-regular fa-bell"></i><span class="notif-dot"></span></div>
@@ -365,7 +402,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
   </header>
 
-  <!-- ── BERANDA ── -->
+  <!-- BERANDA -->
   <div id="tab-beranda" class="tab-page active">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div>
@@ -377,8 +414,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div style="font-size:.58rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;">Poin</div>
       </div>
     </div>
-
-    <!-- Wallet (murid) -->
     <div id="murid-wallet" class="wallet-card">
       <div class="wallet-top">
         <div class="wallet-brand"><span class="chip">eco</span><span>cash wallet</span></div>
@@ -398,8 +433,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="wab" onclick="goTab('aktifitas')"><div class="iw"><i class="fa-solid fa-clock-rotate-left" style="color:#EF9A9A"></i></div><span>Riwayat</span></div>
       </div>
     </div>
-
-    <!-- Stats (petugas) -->
     <div id="petugas-stats" style="display:none;margin-bottom:20px;">
       <div class="stat-row">
         <div class="stat-card">
@@ -425,9 +458,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           <div class="sc-label">Total Nilai (Rp)</div>
         </div>
       </div>
+      <button class="btn-export" onclick="exportXLSX()">
+        <i class="fa-solid fa-file-excel"></i> Export Laporan .xlsx
+      </button>
     </div>
-
-    <!-- Slider -->
     <div class="slider-outer">
       <div class="slider-track" id="slider-track">
         <div class="slider-slide"><img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&q=80" alt=""><div class="slider-overlay"><span class="slider-tag" style="background:var(--g1)">Campaign</span><h4>Ubah Sampah Jadi Saldo Nyata</h4></div></div>
@@ -436,7 +470,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
       <div class="slider-bullets" id="slider-bullets"></div>
     </div>
-
     <div class="sect-head">
       <h3><i class="fa-solid fa-layer-group"></i> Klasifikasi Sampah</h3>
       <div class="tab-pills">
@@ -448,7 +481,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div id="cat-kertas" style="display:none"></div>
   </div>
 
-  <!-- ── INFO ── -->
+  <!-- INFO -->
   <div id="tab-info" class="tab-page">
     <div class="page-head"><h2>💡 Info Eco-School</h2><p>Pusat edukasi pilah sampah &amp; gaya hidup hijau</p></div>
     <div class="info-card">
@@ -471,18 +504,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
   </div>
 
-  <!-- ── RANKING ── -->
+  <!-- RANKING -->
   <div id="tab-ranking" class="tab-page">
     <div class="page-head"><h2>🏆 Papan Peringkat</h2><p>Dihitung berdasarkan akumulasi poin &amp; berat sampah</p></div>
-    <div id="ranking-empty" class="empty-state"><div class="icon">🏆</div><h3>Belum Ada Data</h3><p>Jadilah yang pertama menyetor sampah untuk masuk peringkat!</p></div>
-    <div id="ranking-table-wrap" class="rank-card" style="display:none"><table class="rank-table"><thead><tr><th>Rank</th><th>Nama Siswa</th><th style="text-align:right">Poin</th></tr></thead><tbody id="rank-body"></tbody></table></div>
+    <div id="ranking-empty" class="empty-state"><div class="icon">🏆</div><h3>Belum Ada Data</h3><p>Jadilah yang pertama menyetor sampah!</p></div>
+    <div id="ranking-table-wrap" class="rank-card" style="display:none">
+      <table class="rank-table">
+        <thead><tr><th>Rank</th><th>Nama Siswa</th><th style="text-align:right">Poin</th></tr></thead>
+        <tbody id="rank-body"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- ── SCAN / QR ── -->
+  <!-- SCAN / QR -->
   <div id="tab-scan" class="tab-page">
     <div class="page-head"><h2 id="scan-page-title">📷 Scanner &amp; Input</h2><p id="scan-page-sub">–</p></div>
-
-    <!-- Petugas panel -->
     <div id="scan-petugas-panel" style="display:none">
       <div class="input-form" style="margin-bottom:16px">
         <h3><i class="fa-solid fa-pen-to-square" style="color:var(--g1)"></i> Input Setoran Sampah</h3>
@@ -500,13 +536,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         </div>
         <div class="field"><label>Berat (Kg)</label><input type="number" id="petugas-weight" placeholder="Contoh: 1.5" step="0.1" min="0.1"></div>
         <div class="field"><label>Catatan (Opsional)</label><input type="text" id="petugas-note" placeholder="Kondisi sampah, keterangan"></div>
-        <button class="btn-submit" onclick="submitSetoran()"><i class="fa-solid fa-paper-plane" style="margin-right:8px"></i>Catat Setoran</button>
+        <button class="btn-submit" id="btn-setoran" onclick="submitSetoran()">
+          <i class="fa-solid fa-paper-plane"></i> Catat Setoran
+        </button>
       </div>
-      <div class="page-head" style="margin-bottom:12px"><h2 style="font-size:1rem">👥 Daftar Murid Terdaftar</h2></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-size:1rem;font-weight:800">👥 Daftar Murid Terdaftar</h3>
+        <button class="btn-export" onclick="exportXLSX()"><i class="fa-solid fa-file-excel"></i> Export</button>
+      </div>
       <div id="murid-list-wrap"></div>
     </div>
-
-    <!-- Murid QR panel -->
     <div id="scan-murid-panel" style="display:none">
       <div class="qr-member-card">
         <div style="position:relative;z-index:1">
@@ -526,46 +565,40 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
   </div>
 
-  <!-- ── AKTIVITAS ── -->
+  <!-- AKTIVITAS -->
   <div id="tab-aktifitas" class="tab-page">
     <div class="page-head"><h2>⏱️ Riwayat Transaksi</h2><p>Log semua setoran &amp; mutasi saldo kamu</p></div>
     <div id="act-empty" class="empty-state"><div class="icon">🧾</div><h3>Belum Ada Riwayat</h3><p>Setor sampah pertamamu untuk mulai mengumpulkan saldo!</p></div>
     <div id="act-list" style="display:none"></div>
   </div>
 
-  <!-- ── AKUN ── -->
+  <!-- AKUN -->
   <div id="tab-akun" class="tab-page">
     <div class="page-head"><h2>👤 Akun Saya</h2></div>
     <div class="profile-card">
       <div class="profile-avatar" id="profile-avatar">?</div>
-      <div>
-        <div class="pname" id="profile-name">–</div>
-        <div class="psub" id="profile-sub">–</div>
-      </div>
+      <div><div class="pname" id="profile-name">–</div><div class="psub" id="profile-sub">–</div></div>
     </div>
-
-    <!-- Ubah password — hanya murid -->
     <div class="settings-card" id="card-change-pass">
       <div class="sc-head">🔑 Ubah Kata Sandi</div>
       <div style="padding:14px 18px 0"><div class="field"><label>Kata Sandi Lama</label><input type="password" id="old-pass" placeholder="••••••••"></div></div>
       <div style="padding:0 18px"><div class="field"><label>Kata Sandi Baru</label><input type="password" id="new-pass" placeholder="Minimal 6 karakter"></div></div>
       <div style="padding:0 18px 18px"><button class="btn-submit" onclick="changePassword()">Update Kata Sandi</button></div>
     </div>
-
     <div class="settings-card">
       <div class="sc-head">⚙️ Menu</div>
-      <div class="si" id="si-edit-profil" onclick="openEditProfil()"><div class="sil"><i class="fa-solid fa-user-pen"></i> Edit Profil</div><i class="fa-solid fa-angle-right chev"></i></div>
+      <div class="si" onclick="openEditProfil()"><div class="sil"><i class="fa-solid fa-user-pen"></i> Edit Profil</div><i class="fa-solid fa-angle-right chev"></i></div>
       <div class="si" id="si-qr" onclick="goTab('scan')"><div class="sil"><i class="fa-solid fa-id-card-clip"></i> Lihat QR Kartu Anggota</div><span class="si-badge">QR</span></div>
+      <div class="si" onclick="openModal('modal-setup')"><div class="sil"><i class="fa-solid fa-database"></i> Konfigurasi Database</div><span class="si-badge blue">Setup</span></div>
       <div class="si" onclick="openModal('modal-bantuan')"><div class="sil"><i class="fa-solid fa-headset"></i> Bantuan &amp; Support</div><span class="si-badge purple">Info</span></div>
-      <div class="si" onclick="openModal('modal-tentang')"><div class="sil"><i class="fa-solid fa-circle-info"></i> Tentang Aplikasi</div><span class="si-badge orange">v2.1</span></div>
+      <div class="si" onclick="openModal('modal-tentang')"><div class="sil"><i class="fa-solid fa-circle-info"></i> Tentang Aplikasi</div><span class="si-badge orange">v3.0</span></div>
       <div class="si danger" onclick="doLogout()"><div class="sil"><i class="fa-solid fa-power-off"></i> Keluar dari Akun</div></div>
     </div>
     <div style="text-align:center;padding:16px 0 4px">
-      <p style="font-size:.65rem;color:#C5D0CC">TrashToCash v2.1 • © 2025 Eco School Platform</p>
+      <p style="font-size:.65rem;color:#C5D0CC">TrashToCash v3.0 • Google Sheets Edition</p>
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-beranda" onclick="goTab('beranda')"><i class="fa-solid fa-wallet"></i><span>Beranda</span></button>
     <button class="nav-item" id="nav-info" onclick="goTab('info')"><i class="fa-solid fa-compass"></i><span>Info</span></button>
@@ -576,7 +609,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </nav>
 </div>
 
-<!-- ══════════════ DETAIL SAMPAH ══════════════ -->
+<!-- DETAIL SAMPAH -->
 <div id="screen-detail" class="screen">
   <div class="detail-hero">
     <img id="detail-hero-img" src="" alt="">
@@ -587,29 +620,47 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
   </div>
   <div class="detail-body">
-    <div class="detail-card">
-      <h3>Informasi Sampah</h3>
+    <div class="detail-card"><h3>Informasi Sampah</h3>
       <div class="detail-row"><span class="dr-label">Nama</span><span class="dr-val" id="detail-nama">–</span></div>
       <div class="detail-row"><span class="dr-label">Jenis / Kode</span><span class="dr-val" id="detail-jenis">–</span></div>
       <div class="detail-row"><span class="dr-label">Kondisi Diterima</span><span class="dr-val" id="detail-kondisi">–</span></div>
       <div class="detail-row"><span class="dr-label">Harga per Kg</span><span class="dr-val" id="detail-harga" style="color:var(--g1)">–</span></div>
     </div>
-    <div class="detail-card">
-      <h3>Poin per Kilogram</h3>
+    <div class="detail-card"><h3>Poin per Kilogram</h3>
       <div class="poin-big"><div class="pb-num" id="detail-poin">0</div><div class="pb-label">Poin / Kg</div></div>
     </div>
-    <div class="detail-card">
-      <h3>Deskripsi</h3>
+    <div class="detail-card"><h3>Deskripsi</h3>
       <p id="detail-desc" style="font-size:.8rem;line-height:1.7;color:var(--muted)">–</p>
     </div>
-    <div class="detail-card">
-      <h3>Tips Penyetoran</h3>
-      <div class="tips-list" id="detail-tips"></div>
-    </div>
+    <div class="detail-card"><h3>Tips Penyetoran</h3><div class="tips-list" id="detail-tips"></div></div>
   </div>
 </div>
 
-<!-- ══════════════ MODALS ══════════════ -->
+<!-- MODALS -->
+<!-- Setup Database -->
+<div class="modal-bg" id="modal-setup">
+  <div class="modal-sheet" style="position:relative">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-setup')"><i class="fa-solid fa-xmark"></i></button>
+    <h3>🔧 Konfigurasi Database</h3>
+    <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:14px;padding:14px;margin-bottom:16px;font-size:0.75rem;line-height:1.8;color:#1B5E20;">
+      <b>Langkah Setup:</b><br>
+      1. Buka <b>Google Sheets</b> → buat spreadsheet baru<br>
+      2. Klik <b>Extensions → Apps Script</b><br>
+      3. Hapus kode default, paste kode dari file <code>apps-script-backend.js</code><br>
+      4. Klik <b>Deploy → New Deployment</b><br>
+      5. Pilih type: <b>Web App</b> → Execute as: <b>Me</b> → Who has access: <b>Anyone</b><br>
+      6. Copy URL deployment, paste di bawah ini<br>
+      7. Klik <b>Simpan & Init</b>
+    </div>
+    <div class="field"><label>Apps Script Deployment URL</label>
+      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/...">
+    </div>
+    <button class="btn-submit" onclick="saveAndInitDB()"><i class="fa-solid fa-database"></i> Simpan &amp; Init Database</button>
+    <div id="setup-status" style="margin-top:12px;font-size:0.75rem;color:var(--muted);display:none;"></div>
+  </div>
+</div>
+
 <!-- Edit Profil -->
 <div class="modal-bg" id="modal-profil">
   <div class="modal-sheet" style="position:relative">
@@ -631,7 +682,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div style="display:flex;flex-direction:column;gap:12px">
       <label style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:14px;padding:14px;font-size:.85rem;font-weight:600;cursor:pointer">Notifikasi Setoran Masuk<input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--g1)"></label>
       <label style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:14px;padding:14px;font-size:.85rem;font-weight:600;cursor:pointer">Info Mading &amp; Pengumuman<input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--g1)"></label>
-      <label style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:14px;padding:14px;font-size:.85rem;font-weight:600;cursor:pointer">Update Peringkat<input type="checkbox" style="width:18px;height:18px;accent-color:var(--g1)"></label>
     </div>
     <button class="btn-submit" style="margin-top:16px" onclick="closeModal('modal-notif');showToast('Pengaturan disimpan!','success')">Simpan</button>
   </div>
@@ -644,10 +694,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <button class="modal-close" onclick="closeModal('modal-bantuan')"><i class="fa-solid fa-xmark"></i></button>
     <h3>🎧 Bantuan &amp; Support</h3>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <div style="background:var(--bg);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
-        <div style="width:40px;height:40px;border-radius:12px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:1.2rem">💬</div>
-        <div><div style="font-size:.85rem;font-weight:700">Chat WhatsApp</div><div style="font-size:.71rem;color:var(--muted)">Hubungi petugas OSIS</div></div>
-      </div>
       <details style="background:var(--bg);border-radius:14px;padding:14px">
         <summary style="font-size:.85rem;font-weight:700;cursor:pointer">Bagaimana cara menyetor sampah?</summary>
         <p style="font-size:.76rem;color:var(--muted);margin-top:8px;line-height:1.6">Bawa sampah ke petugas OSIS, tunjukkan QR Card, petugas akan menimbang dan mencatat langsung.</p>
@@ -655,6 +701,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <details style="background:var(--bg);border-radius:14px;padding:14px">
         <summary style="font-size:.85rem;font-weight:700;cursor:pointer">Kapan saldo bisa dicairkan?</summary>
         <p style="font-size:.76rem;color:var(--muted);margin-top:8px;line-height:1.6">Saldo bisa dicairkan setiap akhir bulan atau saat saldo mencapai minimum Rp 10.000.</p>
+      </details>
+      <details style="background:var(--bg);border-radius:14px;padding:14px">
+        <summary style="font-size:.85rem;font-weight:700;cursor:pointer">Data saya disimpan di mana?</summary>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:8px;line-height:1.6">Data disimpan di Google Sheets sekolah yang dikelola admin OSIS. Aman dan bisa diakses dari perangkat mana pun.</p>
       </details>
     </div>
   </div>
@@ -668,87 +718,72 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div style="text-align:center;padding:10px 0 20px">
       <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,var(--g1),var(--acc));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px">♻️</div>
       <h3 style="font-size:1.2rem;font-weight:900;margin-bottom:4px">TrashToCash</h3>
-      <p style="font-size:.75rem;color:var(--muted)">Eco School Platform v2.1</p>
+      <p style="font-size:.75rem;color:var(--muted)">Eco School Platform v3.0 • Google Sheets Edition</p>
     </div>
     <div style="background:var(--bg);border-radius:16px;padding:16px;font-size:.78rem;line-height:1.8;color:var(--muted)">
-      <p>Platform manajemen tabungan sampah sekolah berbasis digital. Data disimpan secara lokal di perangkat dan bersifat permanen selama tidak logout atau menghapus data browser.</p>
+      <p>Platform manajemen tabungan sampah sekolah berbasis digital. Semua data tersimpan di Google Sheets sekolah — real-time, bisa diakses dari mana saja, dan bisa diexport ke Excel kapan pun.</p>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <!-- ══════════════ SCRIPT ══════════════ -->
 <script>
 // ═══════════════════════════════════════════════════════
-// KONFIGURASI PETUGAS
-// Edit bagian ini untuk menambah/mengubah akun petugas.
-// PENTING: Jangan bagikan file ini secara publik karena
-// berisi kode akses petugas.
+// KONFIGURASI — ISI URL DI BAWAH INI SETELAH SETUP
+// ═══════════════════════════════════════════════════════
+let APPS_SCRIPT_URL = localStorage.getItem("ttc_api_url") || "";
+
+// ═══════════════════════════════════════════════════════
+// AKUN PETUGAS (tetap di file untuk keamanan login)
 // ═══════════════════════════════════════════════════════
 const PETUGAS_ACCOUNTS = [
-  { id: "ADM01", pass: "petugas123", nama: "Admin OSIS",       jabatan: "Ketua OSIS"  },
-  { id: "ADM02", pass: "petugas456", nama: "Sekretaris OSIS",  jabatan: "Sekretaris"  },
-  // Tambah petugas baru di baris bawah ini:
-  // { id: "ADM03", pass: "passwordbaru", nama: "Nama Petugas", jabatan: "Jabatan" },
+  { id: "ADM01", pass: "petugas123", nama: "Admin OSIS",      jabatan: "Ketua OSIS" },
+  { id: "ADM02", pass: "petugas456", nama: "Sekretaris OSIS", jabatan: "Sekretaris" },
 ];
 
 // ═══════════════════════════════════════════════════════
-// WASTE DATA
+// WASTE DATA (statis, tidak perlu database)
 // ═══════════════════════════════════════════════════════
 const WASTE_DATA = {
   plastik: [
-    { id:"pet",  nama:"PETE / PET",         jenis:"Polyethylene Terephthalate", kode:"Kode 1", kondisi:"Bersih, kering, diremukkan",        harga:"Rp 5.000 / Kg", poin:15, badgeBg:"#E8F5E9", badgeColor:"#2E7D32",
+    { id:"pet",  nama:"PETE / PET", jenis:"Polyethylene Terephthalate", kode:"Kode 1", kondisi:"Bersih, kering, diremukkan", harga:"Rp 5.000 / Kg", poin:15, badgeBg:"#E8F5E9", badgeColor:"#2E7D32",
       img:"https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&q=80",
-      desc:"PETE adalah plastik paling umum dan paling banyak didaur ulang. Digunakan untuk botol air mineral, botol jus, dan wadah makanan. Setelah didaur ulang, PETE dapat menjadi serat poliester untuk pakaian atau botol baru.",
+      desc:"PETE adalah plastik paling umum dan paling banyak didaur ulang. Setelah didaur ulang, PETE dapat menjadi serat poliester untuk pakaian atau botol baru.",
       tips:["Kosongkan dan bilas sisa cairan","Remukkan botol sebesar mungkin","Lepaskan tutup botol","Jangan setor jika ada sisa minyak"] },
-    { id:"hdpe", nama:"HDPE",               jenis:"High-Density Polyethylene",  kode:"Kode 2", kondisi:"Bersih, kering, kosong",            harga:"Rp 4.500 / Kg", poin:13, badgeBg:"#E3F2FD", badgeColor:"#1565C0",
+    { id:"hdpe", nama:"HDPE", jenis:"High-Density Polyethylene", kode:"Kode 2", kondisi:"Bersih, kering, kosong", harga:"Rp 4.500 / Kg", poin:13, badgeBg:"#E3F2FD", badgeColor:"#1565C0",
       img:"https://images.unsplash.com/photo-1605600611280-146e68892998?w=600&q=80",
-      desc:"HDPE adalah plastik keras dan kuat yang tahan suhu tinggi. Ditemukan pada botol sampo, deterjen, dan galon air. Sangat bernilai dalam industri daur ulang.",
-      tips:["Bilas bersih sisa deterjen atau sampo","Pisahkan tutup botol","Pastikan kering saat disetor","Botol galon diterima jika bersih"] },
-    { id:"ldpe", nama:"LDPE",               jenis:"Low-Density Polyethylene",   kode:"Kode 4", kondisi:"Bersih, kering, bebas noda",        harga:"Rp 3.500 / Kg", poin:10, badgeBg:"#F3E5F5", badgeColor:"#6A1B9A",
+      desc:"HDPE adalah plastik keras dan kuat yang tahan suhu tinggi. Ditemukan pada botol sampo, deterjen, dan galon air.",
+      tips:["Bilas bersih sisa deterjen atau sampo","Pisahkan tutup botol","Pastikan kering saat disetor"] },
+    { id:"ldpe", nama:"LDPE", jenis:"Low-Density Polyethylene", kode:"Kode 4", kondisi:"Bersih, kering, bebas noda", harga:"Rp 3.500 / Kg", poin:10, badgeBg:"#F3E5F5", badgeColor:"#6A1B9A",
       img:"https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
-      desc:"LDPE adalah plastik fleksibel yang lembut. Digunakan untuk kantong belanja, tas plastik, dan bungkus roti. Kumpulkan dalam jumlah banyak karena bobotnya ringan.",
-      tips:["Kumpulkan dalam jumlah banyak","Bersihkan dari sisa makanan","Keringkan sebelum disetor","Jangan campur dengan jenis lain"] },
-    { id:"pp",   nama:"PP (Polypropylene)", jenis:"Polypropylene",              kode:"Kode 5", kondisi:"Bersih, kering, bebas sisa makanan", harga:"Rp 4.000 / Kg", poin:12, badgeBg:"#FFF3E0", badgeColor:"#E65100",
+      desc:"LDPE adalah plastik fleksibel untuk kantong belanja dan tas plastik. Kumpulkan dalam jumlah banyak.",
+      tips:["Kumpulkan dalam jumlah banyak","Bersihkan dari sisa makanan","Keringkan sebelum disetor"] },
+    { id:"pp", nama:"PP (Polypropylene)", jenis:"Polypropylene", kode:"Kode 5", kondisi:"Bersih, kering, bebas sisa makanan", harga:"Rp 4.000 / Kg", poin:12, badgeBg:"#FFF3E0", badgeColor:"#E65100",
       img:"https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&q=80",
-      desc:"PP adalah plastik kuat dan tahan panas untuk wadah makanan microwave, botol minum, dan sedotan. Memiliki ketahanan kimia yang baik.",
-      tips:["Bersihkan sisa makanan dengan air","Keringkan sempurna sebelum disetor","Termasuk sedotan plastik tebal","Wadah take-away diterima jika bersih"] },
+      desc:"PP adalah plastik kuat dan tahan panas untuk wadah makanan, botol minum, dan sedotan.",
+      tips:["Bersihkan sisa makanan","Keringkan sempurna","Wadah take-away diterima jika bersih"] },
     { id:"restricted", nama:"PVC & PS (Styrofoam)", jenis:"Polyvinyl Chloride & Polystyrene", kode:"Kode 3 & 6", kondisi:"TIDAK DITERIMA", harga:"–", poin:0, badgeBg:"#FFCDD2", badgeColor:"#B71C1C",
       img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-      desc:"PVC dan PS/Styrofoam sangat sulit didaur ulang dan membutuhkan fasilitas khusus. Proses daur ulang menghasilkan zat berbahaya sehingga tidak diterima di sistem biasa.",
-      tips:["Tidak diterima di TrashToCash","Cari fasilitas daur ulang khusus di kotamu","Kurangi penggunaan styrofoam sehari-hari","Gunakan alternatif ramah lingkungan"] }
+      desc:"PVC dan PS/Styrofoam sangat sulit didaur ulang dan tidak diterima.",
+      tips:["Tidak diterima di TrashToCash","Cari fasilitas daur ulang khusus","Kurangi penggunaan styrofoam"] }
   ],
   kertas: [
-    { id:"kardus", nama:"Kardus Bergelombang", jenis:"Corrugated Cardboard", kode:"Kertas", kondisi:"Kering, bersih, tidak berjamur",  harga:"Rp 2.000 / Kg", poin:6, badgeBg:"#FFF8E1", badgeColor:"#E65100",
+    { id:"kardus", nama:"Kardus Bergelombang", jenis:"Corrugated Cardboard", kode:"Kertas", kondisi:"Kering, bersih, tidak berjamur", harga:"Rp 2.000 / Kg", poin:6, badgeBg:"#FFF8E1", badgeColor:"#E65100",
       img:"https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&q=80",
-      desc:"Kardus bergelombang adalah jenis kertas yang paling banyak didaur ulang secara global. Digunakan untuk pengiriman barang.",
-      tips:["Lipat flat untuk menghemat tempat","Pastikan tidak basah atau berjamur","Lepaskan selotip dan staples","Kardus bekas makanan boleh jika minimal minyak"] },
-    { id:"hvs",    nama:"Kertas HVS & Kantor", jenis:"Wood-Free Paper",       kode:"Kertas", kondisi:"Kering, bersih, bebas laminasi", harga:"Rp 2.500 / Kg", poin:7, badgeBg:"#F5F5F5", badgeColor:"#424242",
+      desc:"Kardus bergelombang adalah jenis kertas paling banyak didaur ulang secara global.",
+      tips:["Lipat flat untuk menghemat tempat","Pastikan tidak basah atau berjamur","Lepaskan selotip dan staples"] },
+    { id:"hvs", nama:"Kertas HVS & Kantor", jenis:"Wood-Free Paper", kode:"Kertas", kondisi:"Kering, bersih, bebas laminasi", harga:"Rp 2.500 / Kg", poin:7, badgeBg:"#F5F5F5", badgeColor:"#424242",
       img:"https://images.unsplash.com/photo-1612832020406-cdb9b7a2b765?w=600&q=80",
-      desc:"Kertas HVS adalah kertas putih standar untuk mencetak dan menulis. Termasuk kertas fotokopi, kertas surat, dan lembar ujian.",
-      tips:["Kumpulkan dalam bundel rapi","Lepaskan kawat penjilid dari buku","Kertas bergambar masih diterima","Jangan campur dengan kardus"] },
-    { id:"koran",  nama:"Koran & Majalah",     jenis:"Newsprint & Coated Paper",kode:"Kertas", kondisi:"Kering, tidak berjamur",        harga:"Rp 1.800 / Kg", poin:5, badgeBg:"#E8EAF6", badgeColor:"#283593",
+      desc:"Kertas HVS adalah kertas putih standar. Termasuk kertas fotokopi dan lembar ujian.",
+      tips:["Kumpulkan dalam bundel rapi","Lepaskan kawat penjilid","Kertas bergambar masih diterima"] },
+    { id:"koran", nama:"Koran & Majalah", jenis:"Newsprint & Coated Paper", kode:"Kertas", kondisi:"Kering, tidak berjamur", harga:"Rp 1.800 / Kg", poin:5, badgeBg:"#E8EAF6", badgeColor:"#283593",
       img:"https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80",
-      desc:"Koran dan majalah memiliki nilai daur ulang yang baik dan dapat diproses menjadi tisu daur ulang atau karton.",
-      tips:["Bundel rapi dan ikat dengan tali","Hindari koran yang basah atau berjamur","Majalah glossy masih diterima","Pisahkan dari kertas HVS"] }
+      desc:"Koran dan majalah dapat diproses menjadi tisu daur ulang.",
+      tips:["Bundel rapi dan ikat","Hindari yang basah atau berjamur","Majalah glossy masih diterima"] }
   ]
 };
-
-// ═══════════════════════════════════════════════════════
-// SIMPLE HASH — lebih aman dari plain text
-// (Untuk produksi gunakan bcrypt di backend)
-// ═══════════════════════════════════════════════════════
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const chr = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0;
-  }
-  return "h_" + Math.abs(hash).toString(36);
-}
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -756,48 +791,96 @@ function simpleHash(str) {
 let currentUser = null;
 let authMode    = "login";
 let authRole    = "murid";
+let isOnline    = false;
 
 // ═══════════════════════════════════════════════════════
-// STORAGE HELPERS
+// HASH
 // ═══════════════════════════════════════════════════════
-function getUsers()      { try { return JSON.parse(localStorage.getItem("ttc_users") || "[]"); } catch(e) { return []; } }
-function saveUsers(u)    { localStorage.setItem("ttc_users", JSON.stringify(u)); }
-function findUser(nisn)  { return getUsers().find(u => u.nisn === nisn); }
-
-function saveSession(user) { localStorage.setItem("ttc_session", JSON.stringify(user)); }
-function clearSession()    { localStorage.removeItem("ttc_session"); }
-function getSession()      { try { return JSON.parse(localStorage.getItem("ttc_session")); } catch(e) { return null; } }
-
-// PERBAIKAN BUG #4: updateUserData TIDAK mengubah currentUser
-// — dipisah dari updateAndSetCurrent yang hanya dipakai saat edit profil sendiri
-function updateUserData(updated) {
-  const users = getUsers();
-  const idx   = users.findIndex(u => u.nisn === updated.nisn);
-  if (idx > -1) { users[idx] = updated; saveUsers(users); }
-}
-
-// Dipakai ketika murid mengedit profil/password dirinya sendiri
-function updateAndSetCurrent(updated) {
-  updateUserData(updated);
-  currentUser = updated;
-  saveSession(currentUser);
-}
-
-function refreshCurrentUser() {
-  if (!currentUser || currentUser.role !== "murid") return;
-  const fresh = findUser(currentUser.nisn);
-  if (fresh) { currentUser = fresh; saveSession(currentUser); }
-}
-
-function getTrx(nisn)       { try { return JSON.parse(localStorage.getItem("ttc_trx_" + nisn) || "[]"); } catch(e) { return []; } }
-function addTrx(nisn, trx)  {
-  const list = getTrx(nisn);
-  list.unshift(trx);
-  localStorage.setItem("ttc_trx_" + nisn, JSON.stringify(list));
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  return "h_" + Math.abs(h).toString(36);
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTH MODE / ROLE SWITCHER
+// API LAYER
+// ═══════════════════════════════════════════════════════
+async function api(action, params = {}) {
+  if (!APPS_SCRIPT_URL) throw new Error("URL belum dikonfigurasi");
+  const url = APPS_SCRIPT_URL + "?action=" + action + "&" + new URLSearchParams(params);
+  const res = await fetch(url, { redirect: "follow" });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || "API error");
+  return json;
+}
+
+async function apiPost(body) {
+  if (!APPS_SCRIPT_URL) throw new Error("URL belum dikonfigurasi");
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    redirect: "follow",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || "API error");
+  return json;
+}
+
+function setSyncStatus(state) {
+  const dot   = document.getElementById("sync-dot");
+  const label = document.getElementById("sync-label");
+  if (!dot || !label) return;
+  dot.className   = "sync-dot " + state;
+  const map = { online: "Terhubung", syncing: "Sinkronisasi...", "": "Offline" };
+  label.textContent = map[state] || "–";
+  isOnline = state === "online";
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION (localStorage, tanpa data sensitif)
+// ═══════════════════════════════════════════════════════
+function saveSession(u) { localStorage.setItem("ttc_session", JSON.stringify(u)); }
+function clearSession()  { localStorage.removeItem("ttc_session"); }
+function getSession()    { try { return JSON.parse(localStorage.getItem("ttc_session")); } catch(e) { return null; } }
+
+// ═══════════════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════════════
+function showLoading(msg) {
+  document.getElementById("loading-text").textContent = msg || "Memuat...";
+  document.getElementById("loading-overlay").classList.add("show");
+}
+function hideLoading() { document.getElementById("loading-overlay").classList.remove("show"); }
+
+// ═══════════════════════════════════════════════════════
+// SETUP DATABASE
+// ═══════════════════════════════════════════════════════
+async function saveAndInitDB() {
+  const url = (document.getElementById("setup-url").value || "").trim();
+  if (!url.startsWith("https://script.google.com")) {
+    return showToast("URL tidak valid. Harus diawali https://script.google.com", "error");
+  }
+  APPS_SCRIPT_URL = url;
+  localStorage.setItem("ttc_api_url", url);
+  const statusEl = document.getElementById("setup-status");
+  statusEl.style.display = "";
+  statusEl.textContent = "⏳ Menginisialisasi sheets...";
+  try {
+    const r = await api("init");
+    statusEl.textContent = "✅ " + r.message;
+    showToast("Database berhasil dikonfigurasi!", "success");
+    document.getElementById("setup-banner").classList.remove("show");
+    closeModal("modal-setup");
+    setSyncStatus("online");
+  } catch(e) {
+    statusEl.textContent = "❌ Error: " + e.message;
+    showToast("Gagal: " + e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH MODE
 // ═══════════════════════════════════════════════════════
 function showAuthMode(mode) {
   authMode = mode;
@@ -810,7 +893,7 @@ function showAuthMode(mode) {
   sw.innerHTML = isLogin
     ? 'Belum punya akun? <span onclick="showAuthMode(\'register\')">Daftar di sini</span>'
     : 'Sudah punya akun? <span onclick="showAuthMode(\'login\')">Masuk</span>';
-  updateRegisterView();
+  updateRegView();
 }
 
 function setAuthRole(role) {
@@ -820,81 +903,95 @@ function setAuthRole(role) {
   document.getElementById("login-murid-fields").style.display   = role === "murid"   ? "" : "none";
   document.getElementById("login-petugas-fields").style.display = role === "petugas" ? "" : "none";
   document.getElementById("petugas-hint").style.display         = role === "petugas" ? "" : "none";
-  updateRegisterView();
+  updateRegView();
 }
 
-function updateRegisterView() {
+function updateRegView() {
   if (authMode !== "register") return;
-  document.getElementById("reg-murid-fields").style.display  = authRole === "murid"   ? "" : "none";
-  document.getElementById("reg-petugas-note").style.display  = authRole === "petugas" ? "" : "none";
-  document.getElementById("reg-submit-btn").style.display    = authRole === "murid"   ? "" : "none";
+  document.getElementById("reg-murid-fields").style.display = authRole === "murid"   ? "" : "none";
+  document.getElementById("reg-petugas-note").style.display = authRole === "petugas" ? "" : "none";
+  document.getElementById("btn-register").style.display     = authRole === "murid"   ? "" : "none";
 }
 
 // ═══════════════════════════════════════════════════════
 // LOGIN
 // ═══════════════════════════════════════════════════════
-function doLogin() {
-  if (authRole === "murid") {
-    const nisn = (document.getElementById("l-nisn").value || "").trim();
-    const pass = document.getElementById("l-pass").value;
-    if (!nisn || !pass) return showToast("NISN dan kata sandi wajib diisi!", "error");
-    const user = findUser(nisn);
-    if (!user) return showToast("NISN tidak ditemukan. Silakan daftar terlebih dahulu.", "error");
-    // Cek hash; fallback ke plain text untuk akun lama (migrasi)
-    const inputHash = simpleHash(pass);
-    const passOk    = user.passHash ? user.passHash === inputHash : user.pass === pass;
-    if (!passOk) return showToast("Kata sandi salah!", "error");
-    // Migrasi akun lama ke hash
-    if (!user.passHash) { user.passHash = inputHash; delete user.pass; updateUserData(user); }
-    const { passHash: _ph, pass: _p, ...safeUser } = user;
-    currentUser = { ...user }; // simpan full di memori (untuk validasi)
-    saveSession(safeUser);     // session tanpa password
-    launchApp();
-  } else {
+async function doLogin() {
+  if (!APPS_SCRIPT_URL && authRole === "murid") {
+    return showToast("Setup database dulu di menu Akun → Konfigurasi Database", "error");
+  }
+  const btn = document.getElementById("btn-login");
+  btn.disabled = true;
+
+  if (authRole === "petugas") {
     const id   = (document.getElementById("l-petid").value || "").trim().toUpperCase();
     const pass = document.getElementById("l-petpass").value;
-    if (!id || !pass) return showToast("ID dan kode akses wajib diisi!", "error");
+    if (!id || !pass) { btn.disabled = false; return showToast("ID dan kode akses wajib diisi!", "error"); }
     const acct = PETUGAS_ACCOUNTS.find(a => a.id === id && a.pass === pass);
-    if (!acct) return showToast("ID atau kode akses petugas salah!", "error");
+    if (!acct) { btn.disabled = false; return showToast("ID atau kode akses salah!", "error"); }
     currentUser = { role: "petugas", id: acct.id, nama: acct.nama, jabatan: acct.jabatan };
     saveSession(currentUser);
+    btn.disabled = false;
     launchApp();
+    return;
+  }
+
+  const nisn = (document.getElementById("l-nisn").value || "").trim();
+  const pass = document.getElementById("l-pass").value;
+  if (!nisn || !pass) { btn.disabled = false; return showToast("NISN dan kata sandi wajib diisi!", "error"); }
+
+  showLoading("Memeriksa akun...");
+  try {
+    const r = await api("getUser", { nisn });
+    const u = r.user;
+    const h = simpleHash(pass);
+    if (u.passHash !== h) throw new Error("Kata sandi salah!");
+    currentUser = { ...u };
+    const { passHash: _ph, ...safe } = u;
+    saveSession(safe);
+    hideLoading();
+    btn.disabled = false;
+    launchApp();
+  } catch(e) {
+    hideLoading();
+    btn.disabled = false;
+    showToast(e.message || "Login gagal!", "error");
   }
 }
 
 // ═══════════════════════════════════════════════════════
 // REGISTER
 // ═══════════════════════════════════════════════════════
-function doRegister() {
-  if (authRole !== "murid") return;
+async function doRegister() {
+  if (!APPS_SCRIPT_URL) return showToast("Setup database dulu!", "error");
   const nama  = (document.getElementById("r-nama").value  || "").trim();
   const nisn  = (document.getElementById("r-nisn").value  || "").trim();
   const kelas = (document.getElementById("r-kelas").value || "").trim();
   const pass  = document.getElementById("r-pass").value;
   const pass2 = document.getElementById("r-pass2").value;
 
-  if (!nama)           return showToast("Nama lengkap wajib diisi!", "error");
+  if (!nama)           return showToast("Nama wajib diisi!", "error");
   if (!nisn)           return showToast("NISN wajib diisi!", "error");
   if (!kelas)          return showToast("Kelas wajib diisi!", "error");
   if (pass.length < 6) return showToast("Kata sandi minimal 6 karakter!", "error");
   if (pass !== pass2)  return showToast("Konfirmasi kata sandi tidak cocok!", "error");
-  if (findUser(nisn))  return showToast("NISN sudah terdaftar! Silakan masuk.", "error");
 
-  const newUser = {
-    role: "murid", nisn, nama, kelas,
-    passHash: simpleHash(pass), // PERBAIKAN BUG #2: hash, bukan plain text
-    saldo: 0, berat: 0, poin: 0,
-    createdAt: new Date().toISOString()
-  };
-  const users = getUsers();
-  users.push(newUser);
-  saveUsers(users);
-
-  const { passHash: _ph, ...safeUser } = newUser;
-  currentUser = { ...newUser };
-  saveSession(safeUser);
-  showToast("Akun berhasil dibuat! Selamat datang 🎉", "success");
-  launchApp();
+  const btn = document.getElementById("btn-register");
+  btn.disabled = true;
+  showLoading("Mendaftarkan akun...");
+  try {
+    await apiPost({ action: "register", nisn, nama, kelas, passHash: simpleHash(pass) });
+    currentUser = { role: "murid", nisn, nama, kelas, saldo: 0, berat: 0, poin: 0 };
+    saveSession(currentUser);
+    hideLoading();
+    btn.disabled = false;
+    showToast("Akun berhasil dibuat! 🎉", "success");
+    launchApp();
+  } catch(e) {
+    hideLoading();
+    btn.disabled = false;
+    showToast(e.message || "Gagal daftar!", "error");
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -906,6 +1003,7 @@ function launchApp() {
   populateUI();
   initSlider();
   renderWasteCards();
+  if (APPS_SCRIPT_URL) setSyncStatus("online");
   renderRanking();
   renderActivity();
 }
@@ -917,64 +1015,46 @@ function populateUI() {
   const u     = currentUser;
   const isPet = u.role === "petugas";
 
-  // Header badge
-  const badge = document.getElementById("hdr-role-badge");
+  const badge   = document.getElementById("hdr-role-badge");
   badge.textContent = isPet ? "Petugas" : "Murid";
   badge.className   = isPet ? "role-badge pb" : "role-badge";
 
-  // Greeting
-  document.getElementById("greet-name").textContent     = u.nama;
-  document.getElementById("greet-pts").textContent      = u.poin || 0;
-  document.getElementById("greet-poin-box").style.display = isPet ? "none" : "";
-
-  // Wallet / Stats
+  document.getElementById("greet-name").textContent        = u.nama;
+  document.getElementById("greet-pts").textContent         = u.poin || 0;
+  document.getElementById("greet-poin-box").style.display  = isPet ? "none" : "";
   document.getElementById("murid-wallet").style.display    = isPet ? "none" : "";
   document.getElementById("petugas-stats").style.display   = isPet ? ""     : "none";
 
   if (!isPet) {
     document.getElementById("wallet-balance").textContent = "Rp " + (u.saldo || 0).toLocaleString("id-ID");
     document.getElementById("wallet-weight").textContent  = (u.berat || 0).toFixed(1);
-    const allUsers = getUsers().sort((a, b) => b.poin - a.poin);
-    const rank     = allUsers.findIndex(x => x.nisn === u.nisn) + 1;
-    document.getElementById("wallet-rank").textContent    = rank > 0 ? "#" + rank : "#–";
+    document.getElementById("qr-card-name").textContent   = u.nama;
+    document.getElementById("qr-card-kelas").textContent  = "Kelas: " + (u.kelas || "–");
+    document.getElementById("qr-card-nisn").textContent   = "NISN: " + u.nisn;
+    renderQR(u.nama + "\nKelas: " + (u.kelas||"–") + "\nNISN: " + u.nisn);
   } else {
-    refreshPetugasStats();
-    renderMuridList();
+    loadPetugasStats();
   }
 
-  // QR Card
-  if (!isPet) {
-    document.getElementById("qr-card-name").textContent  = u.nama;
-    document.getElementById("qr-card-kelas").textContent = "Kelas: " + (u.kelas || "–");
-    document.getElementById("qr-card-nisn").textContent  = "NISN: " + u.nisn;
-    renderQR(u.nama + "\nKelas: " + (u.kelas || "–") + "\nNISN: " + u.nisn);
-  }
-
-  // Profile / Akun
   document.getElementById("profile-avatar").textContent = u.nama.charAt(0).toUpperCase();
   document.getElementById("profile-name").textContent   = u.nama;
   document.getElementById("profile-sub").textContent    = isPet
     ? (u.jabatan || "Administrator")
     : "NISN: " + u.nisn + " • Kelas " + (u.kelas || "–");
 
-  // PERBAIKAN BUG #5: Sembunyikan elemen yang tidak relevan untuk petugas
   const siQR = document.getElementById("si-qr");
   if (siQR) siQR.style.display = isPet ? "none" : "";
-
-  // Sembunyikan ubah kata sandi untuk petugas (kata sandi petugas ada di config)
   const cardPass = document.getElementById("card-change-pass");
   if (cardPass) cardPass.style.display = isPet ? "none" : "";
-
-  // Sembunyikan tab Riwayat dari nav untuk petugas
   const navAkt = document.getElementById("nav-aktifitas");
   if (navAkt) navAkt.style.display = isPet ? "none" : "";
 
-  // Scan page
   if (isPet) {
     document.getElementById("scan-page-title").textContent = "📋 Input Setoran";
     document.getElementById("scan-page-sub").textContent   = "Catat setoran sampah murid";
     document.getElementById("scan-petugas-panel").style.display = "";
     document.getElementById("scan-murid-panel").style.display   = "none";
+    renderMuridList();
   } else {
     document.getElementById("scan-page-title").textContent = "📱 Kartu Anggota QR";
     document.getElementById("scan-page-sub").textContent   = "Tunjukkan ke petugas saat menyetor";
@@ -984,22 +1064,25 @@ function populateUI() {
 }
 
 // ═══════════════════════════════════════════════════════
-// PETUGAS STATS
+// PETUGAS STATS (dari API)
 // ═══════════════════════════════════════════════════════
-function refreshPetugasStats() {
-  const allUsers = getUsers();
-  let totalKg = 0, totalRp = 0, totalTrx = 0;
-  allUsers.forEach(u => {
-    totalKg  += (u.berat  || 0);
-    totalRp  += (u.saldo  || 0);
-    totalTrx += getTrx(u.nisn).length;
-  });
-  document.getElementById("stat-murid").textContent = allUsers.length;
-  document.getElementById("stat-kg").textContent    = totalKg.toFixed(1);
-  document.getElementById("stat-trx").textContent   = totalTrx;
-  document.getElementById("stat-rp").textContent    = totalRp >= 1000
-    ? (totalRp / 1000).toFixed(0) + "K"
-    : totalRp.toString();
+async function loadPetugasStats() {
+  if (!APPS_SCRIPT_URL) return;
+  try {
+    setSyncStatus("syncing");
+    const r = await api("getStats");
+    const s = r.stats;
+    document.getElementById("stat-murid").textContent = s.totalMurid;
+    document.getElementById("stat-kg").textContent    = parseFloat(s.totalKg).toFixed(1);
+    document.getElementById("stat-trx").textContent   = s.totalTrx;
+    document.getElementById("stat-rp").textContent    = s.totalRp >= 1000
+      ? Math.round(s.totalRp/1000) + "K"
+      : s.totalRp;
+    setSyncStatus("online");
+  } catch(e) {
+    setSyncStatus("");
+    console.error("Stats error:", e);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1009,113 +1092,116 @@ function renderQR(text) {
   const el = document.getElementById("qr-code-render");
   if (!el) return;
   el.innerHTML = "";
+  try { new QRCode(el, { text, width:160, height:160, correctLevel: QRCode.CorrectLevel.M }); }
+  catch(e) { el.innerHTML = '<p style="font-size:.7rem;color:var(--muted)">QR tidak tersedia</p>'; }
+}
+
+// ═══════════════════════════════════════════════════════
+// RANKING (dari API)
+// ═══════════════════════════════════════════════════════
+async function renderRanking() {
+  if (!APPS_SCRIPT_URL) return;
   try {
-    new QRCode(el, { text, width:160, height:160, correctLevel: QRCode.CorrectLevel.M });
+    const r    = await api("getRanking");
+    const users = r.ranking || [];
+    if (!users.length) {
+      document.getElementById("ranking-empty").style.display      = "";
+      document.getElementById("ranking-table-wrap").style.display = "none";
+      return;
+    }
+    document.getElementById("ranking-empty").style.display      = "none";
+    document.getElementById("ranking-table-wrap").style.display = "";
+    const tbody = document.getElementById("rank-body");
+    tbody.innerHTML = "";
+    users.forEach((u, i) => {
+      const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+      const isMe  = currentUser?.nisn === u.nisn;
+      tbody.innerHTML += `<tr${i<3?' class="rank-top"':''}>
+        <td>${medal}</td>
+        <td class="rank-name">${u.nama}${isMe?` <span style="font-size:.6rem;background:#E8F5E9;color:#2E7D32;padding:2px 6px;border-radius:8px;font-weight:800">Kamu</span>`:''}
+        </td>
+        <td class="rank-pts">${Number(u.poin).toLocaleString("id-ID")} Pts</td>
+      </tr>`;
+    });
+    if (currentUser?.role === "murid") {
+      const rank = users.findIndex(x => x.nisn === currentUser.nisn) + 1;
+      const el   = document.getElementById("wallet-rank");
+      if (el) el.textContent = rank > 0 ? "#" + rank : "#–";
+    }
+  } catch(e) { console.error("Ranking error:", e); }
+}
+
+// ═══════════════════════════════════════════════════════
+// ACTIVITY LOG (dari API)
+// ═══════════════════════════════════════════════════════
+async function renderActivity() {
+  if (!currentUser || currentUser.role === "petugas" || !APPS_SCRIPT_URL) return;
+  try {
+    const r      = await api("getTrx", { nisn: currentUser.nisn });
+    const trxList = r.transaksi || [];
+    const listEl  = document.getElementById("act-list");
+    const emptyEl = document.getElementById("act-empty");
+    if (!trxList.length) {
+      emptyEl.style.display = ""; listEl.style.display = "none"; return;
+    }
+    emptyEl.style.display = "none"; listEl.style.display = "";
+    listEl.innerHTML = "";
+    trxList.forEach(t => {
+      const waktu = t.waktu ? new Date(t.waktu).toLocaleString("id-ID", {
+        day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"
+      }) : "–";
+      listEl.innerHTML += `
+        <div class="log-item">
+          <div class="log-icon plus"><i class="fa-solid fa-recycle"></i></div>
+          <div class="log-body">
+            <div class="log-row">
+              <span>${t.jenis}</span>
+              <span class="log-val plus">+Rp ${Number(t.nilai).toLocaleString("id-ID")}</span>
+            </div>
+            <div class="log-desc">${t.berat} Kg • Petugas: ${t.petugas}</div>
+            <div class="log-time">${waktu}</div>
+          </div>
+        </div>`;
+    });
+  } catch(e) { console.error("Activity error:", e); }
+}
+
+// ═══════════════════════════════════════════════════════
+// MURID LIST
+// ═══════════════════════════════════════════════════════
+async function renderMuridList() {
+  const wrap = document.getElementById("murid-list-wrap");
+  if (!wrap || !APPS_SCRIPT_URL) return;
+  try {
+    const r     = await api("getUsers");
+    const users = (r.users || []).sort((a, b) => b.poin - a.poin);
+    if (!users.length) {
+      wrap.innerHTML = `<div class="empty-state"><div class="icon">👥</div><h3>Belum Ada Murid</h3><p>Belum ada murid yang terdaftar.</p></div>`;
+      return;
+    }
+    wrap.innerHTML = "";
+    users.forEach(u => {
+      wrap.innerHTML += `
+        <div class="murid-item">
+          <div class="mi-left">
+            <div class="mi-avatar">${u.nama.charAt(0).toUpperCase()}</div>
+            <div><div class="mi-name">${u.nama}</div><div class="mi-sub">NISN: ${u.nisn} • ${u.kelas||"–"}</div></div>
+          </div>
+          <div class="mi-saldo">
+            <div class="ms-rp">Rp ${(u.saldo||0).toLocaleString("id-ID")}</div>
+            <div class="ms-pt">${u.poin||0} Poin • ${(u.berat||0).toFixed(1)} Kg</div>
+          </div>
+        </div>`;
+    });
   } catch(e) {
-    el.innerHTML = '<p style="font-size:.7rem;color:var(--muted);text-align:center">QR tidak tersedia</p>';
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Gagal Memuat</h3><p>${e.message}</p></div>`;
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// RANKING
+// SUBMIT SETORAN
 // ═══════════════════════════════════════════════════════
-function renderRanking() {
-  const users = getUsers().filter(u => u.poin > 0).sort((a, b) => b.poin - a.poin);
-  if (!users.length) {
-    document.getElementById("ranking-empty").style.display       = "";
-    document.getElementById("ranking-table-wrap").style.display  = "none";
-    return;
-  }
-  document.getElementById("ranking-empty").style.display       = "none";
-  document.getElementById("ranking-table-wrap").style.display  = "";
-  const tbody = document.getElementById("rank-body");
-  tbody.innerHTML = "";
-  users.forEach((u, i) => {
-    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
-    const isMe  = currentUser && currentUser.nisn === u.nisn;
-    tbody.innerHTML += `<tr${i < 3 ? ' class="rank-top"' : ''}>
-      <td>${medal}</td>
-      <td class="rank-name">${u.nama}${isMe ? ' <span style="font-size:.6rem;background:#E8F5E9;color:#2E7D32;padding:2px 6px;border-radius:8px;font-weight:800">Kamu</span>' : ''}</td>
-      <td class="rank-pts">${Number(u.poin).toLocaleString("id-ID")} Pts</td>
-    </tr>`;
-  });
-
-  // PERBAIKAN BUG #6: Update widget ranking di beranda langsung
-  if (currentUser && currentUser.role === "murid") {
-    const rank = users.findIndex(x => x.nisn === currentUser.nisn) + 1;
-    const el   = document.getElementById("wallet-rank");
-    if (el) el.textContent = rank > 0 ? "#" + rank : "#–";
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// ACTIVITY LOG
-// ═══════════════════════════════════════════════════════
-function renderActivity() {
-  // PERBAIKAN BUG #5: Tab Riwayat tidak relevan untuk petugas; return saja
-  if (!currentUser || currentUser.role === "petugas") return;
-  const trxList = getTrx(currentUser.nisn);
-  const listEl  = document.getElementById("act-list");
-  const emptyEl = document.getElementById("act-empty");
-  if (!trxList.length) {
-    emptyEl.style.display = "";
-    listEl.style.display  = "none";
-    return;
-  }
-  emptyEl.style.display = "none";
-  listEl.style.display  = "";
-  listEl.innerHTML      = "";
-  trxList.forEach(a => {
-    listEl.innerHTML += `
-      <div class="log-item">
-        <div class="log-icon ${a.type}"><i class="fa-solid ${a.icon}"></i></div>
-        <div class="log-body">
-          <div class="log-row">
-            <span>${a.label}</span>
-            <span class="log-val ${a.type}">${a.val}</span>
-          </div>
-          <div class="log-desc">${a.desc}</div>
-          <div class="log-time">${a.time}</div>
-        </div>
-      </div>`;
-  });
-}
-
-// ═══════════════════════════════════════════════════════
-// MURID LIST (untuk petugas)
-// ═══════════════════════════════════════════════════════
-function renderMuridList() {
-  const wrap  = document.getElementById("murid-list-wrap");
-  if (!wrap) return;
-  const users = getUsers().sort((a, b) => b.poin - a.poin);
-  if (!users.length) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">👥</div><h3>Belum Ada Murid</h3><p>Belum ada murid yang terdaftar.</p></div>`;
-    return;
-  }
-  wrap.innerHTML = "";
-  users.forEach(u => {
-    wrap.innerHTML += `
-      <div class="murid-item">
-        <div class="mi-left">
-          <div class="mi-avatar">${u.nama.charAt(0).toUpperCase()}</div>
-          <div>
-            <div class="mi-name">${u.nama}</div>
-            <div class="mi-sub">NISN: ${u.nisn} • ${u.kelas || "–"}</div>
-          </div>
-        </div>
-        <div class="mi-saldo">
-          <div class="ms-rp">Rp ${(u.saldo || 0).toLocaleString("id-ID")}</div>
-          <div class="ms-pt">${u.poin || 0} Poin • ${(u.berat || 0).toFixed(1)} Kg</div>
-        </div>
-      </div>`;
-  });
-}
-
-// ═══════════════════════════════════════════════════════
-// SUBMIT SETORAN (petugas)
-// PERBAIKAN BUG #4: Tidak mengubah currentUser (petugas)
-// ═══════════════════════════════════════════════════════
-function submitSetoran() {
+async function submitSetoran() {
   const nisn   = (document.getElementById("petugas-nisn").value   || "").trim();
   const type   = document.getElementById("petugas-type").value;
   const weight = parseFloat(document.getElementById("petugas-weight").value);
@@ -1123,9 +1209,7 @@ function submitSetoran() {
 
   if (!nisn)              return showToast("NISN murid wajib diisi!", "error");
   if (!weight || weight <= 0) return showToast("Masukkan berat yang valid!", "error");
-
-  const murid = findUser(nisn);
-  if (!murid) return showToast("Murid dengan NISN ini tidak ditemukan!", "error");
+  if (!APPS_SCRIPT_URL)   return showToast("Database belum dikonfigurasi!", "error");
 
   const hargaMap = { "PETE":5000, "HDPE":4500, "PP":4000, "LDPE":3500, "Kardus":2000, "HVS":2500, "Koran":1800 };
   const poinMap  = { "PETE":15,   "HDPE":13,   "PP":12,   "LDPE":10,   "Kardus":6,    "HVS":7,    "Koran":5 };
@@ -1133,73 +1217,114 @@ function submitSetoran() {
   const nilai    = Math.round(weight * hargaMap[key]);
   const poinAdd  = Math.round(weight * poinMap[key]);
 
-  // Update data murid yang disetor
-  murid.saldo = (murid.saldo || 0) + nilai;
-  murid.berat = (murid.berat || 0) + weight;
-  murid.poin  = (murid.poin  || 0) + poinAdd;
+  const btn = document.getElementById("btn-setoran");
+  btn.disabled = true;
+  showLoading("Menyimpan setoran ke Google Sheets...");
+  try {
+    await apiPost({
+      action: "addTrx",
+      nisn, jenisSampah: type, berat: weight,
+      nilai, poin: poinAdd,
+      petugas: currentUser.id,
+      catatan: note
+    });
+    hideLoading();
+    btn.disabled = false;
+    showToast(`✓ ${weight}Kg berhasil! +Rp ${nilai.toLocaleString("id-ID")}`, "success");
+    ["petugas-nisn","petugas-weight","petugas-note"].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = "";
+    });
+    loadPetugasStats();
+    renderMuridList();
+    renderRanking();
+  } catch(e) {
+    hideLoading();
+    btn.disabled = false;
+    showToast("Gagal: " + e.message, "error");
+  }
+}
 
-  // PERBAIKAN BUG #4: Gunakan updateUserData (TIDAK mengubah currentUser)
-  updateUserData(murid);
+// ═══════════════════════════════════════════════════════
+// EXPORT XLSX
+// ═══════════════════════════════════════════════════════
+async function exportXLSX() {
+  if (!APPS_SCRIPT_URL) return showToast("Database belum dikonfigurasi!", "error");
+  showLoading("Mengambil data dari Google Sheets...");
+  try {
+    const [usersRes, trxRes] = await Promise.all([api("getUsers"), api("getAllTrx")]);
+    const users = usersRes.users || [];
+    const trx   = trxRes.transaksi || [];
 
-  // Catat transaksi
-  const now     = new Date();
-  const timeStr = now.toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" })
-                + ", " + now.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" });
-  addTrx(nisn, {
-    type: "plus", icon: "fa-recycle",
-    label: "Setoran " + (type.split(" ")[1] || type),
-    val:   "+Rp " + nilai.toLocaleString("id-ID"),
-    desc:  weight + " Kg × Rp " + hargaMap[key].toLocaleString("id-ID") + "/Kg — Petugas: " + currentUser.id + (note ? " — " + note : ""),
-    time:  timeStr
-  });
+    const wb = XLSX.utils.book_new();
 
-  showToast("✓ Setoran " + weight + "Kg untuk " + murid.nama + " berhasil! +Rp " + nilai.toLocaleString("id-ID"), "success");
-  ["petugas-nisn", "petugas-weight", "petugas-note"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
+    // Sheet 1: Rekap Murid
+    const muridRows = [["NISN","Nama","Kelas","Saldo (Rp)","Berat (Kg)","Poin","Terdaftar"]];
+    users.sort((a,b) => b.poin - a.poin).forEach(u => {
+      muridRows.push([u.nisn, u.nama, u.kelas, u.saldo, u.berat, u.poin,
+        u.createdAt ? new Date(u.createdAt).toLocaleDateString("id-ID") : ""]);
+    });
+    const ws1 = XLSX.utils.aoa_to_sheet(muridRows);
+    ws1["!cols"] = [{wch:14},{wch:24},{wch:12},{wch:14},{wch:12},{wch:8},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws1, "Rekap Murid");
 
-  refreshPetugasStats();
-  renderMuridList();
-  renderRanking();
+    // Sheet 2: Semua Transaksi
+    const trxRows = [["ID","NISN","Nama","Jenis Sampah","Berat (Kg)","Nilai (Rp)","Poin","Petugas","Waktu"]];
+    trx.forEach(t => {
+      trxRows.push([t.id, t.nisn, t.nama, t.jenis, t.berat, t.nilai, t.poin, t.petugas,
+        t.waktu ? new Date(t.waktu).toLocaleString("id-ID") : ""]);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(trxRows);
+    ws2["!cols"] = [{wch:20},{wch:14},{wch:22},{wch:30},{wch:10},{wch:12},{wch:7},{wch:10},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws2, "Transaksi");
+
+    // Sheet 3: Ranking
+    const rankRows = [["Rank","Nama","Kelas","Poin","Berat (Kg)","Saldo (Rp)"]];
+    users.forEach((u, i) => {
+      rankRows.push([i+1, u.nama, u.kelas, u.poin, u.berat, u.saldo]);
+    });
+    const ws3 = XLSX.utils.aoa_to_sheet(rankRows);
+    XLSX.utils.book_append_sheet(wb, ws3, "Ranking");
+
+    const now  = new Date();
+    const fname = `TrashToCash_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    hideLoading();
+    showToast("✓ Laporan berhasil diexport!", "success");
+  } catch(e) {
+    hideLoading();
+    showToast("Export gagal: " + e.message, "error");
+  }
 }
 
 // ═══════════════════════════════════════════════════════
 // WASTE CARDS
 // ═══════════════════════════════════════════════════════
 function renderWasteCards() {
-  const pCont = document.getElementById("cat-plastik");
-  const kCont = document.getElementById("cat-kertas");
-  pCont.innerHTML = "";
-  kCont.innerHTML = "";
-
+  const pC = document.getElementById("cat-plastik");
+  const kC = document.getElementById("cat-kertas");
+  pC.innerHTML = ""; kC.innerHTML = "";
   WASTE_DATA.plastik.forEach(w => {
     const isR = w.id === "restricted";
-    pCont.innerHTML += `
-      <div class="waste-card${isR ? " restricted-card" : ""}" onclick="${isR ? "return false" : ("openDetail('" + w.id + "','plastik')")}">
-        <img class="wci" src="${w.img}" alt="${w.nama}" onerror="this.style.display='none'">
-        <div style="flex:1">
-          <span class="waste-badge" style="background:${w.badgeBg};color:${w.badgeColor}">${w.kode}</span>
-          <h4>${w.nama}</h4><p>${w.jenis}</p>
-          ${isR
-            ? '<span style="display:inline-block;margin-top:6px;font-size:.65rem;font-weight:700;color:var(--danger)">⚠️ Tidak Diterima</span>'
-            : '<span class="poin-chip">🌿 ' + w.poin + ' Poin/Kg</span>'}
-        </div>
-        ${!isR ? '<div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>' : ""}
-      </div>`;
+    pC.innerHTML += `<div class="waste-card${isR?" restricted-card":""}" onclick="${isR?"return false":"openDetail('"+w.id+"','plastik')"}">
+      <img class="wci" src="${w.img}" alt="${w.nama}" onerror="this.style.display='none'">
+      <div style="flex:1">
+        <span class="waste-badge" style="background:${w.badgeBg};color:${w.badgeColor}">${w.kode}</span>
+        <h4>${w.nama}</h4><p>${w.jenis}</p>
+        ${isR?'<span style="display:inline-block;margin-top:6px;font-size:.65rem;font-weight:700;color:var(--danger)">⚠️ Tidak Diterima</span>':'<span class="poin-chip">🌿 '+w.poin+' Poin/Kg</span>'}
+      </div>
+      ${!isR?'<div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>':""}
+    </div>`;
   });
-
   WASTE_DATA.kertas.forEach(w => {
-    kCont.innerHTML += `
-      <div class="waste-card" onclick="openDetail('${w.id}','kertas')">
-        <img class="wci" src="${w.img}" alt="${w.nama}" onerror="this.style.display='none'">
-        <div style="flex:1">
-          <span class="waste-badge" style="background:${w.badgeBg};color:${w.badgeColor}">${w.kode}</span>
-          <h4>${w.nama}</h4><p>${w.jenis}</p>
-          <span class="poin-chip">🌿 ${w.poin} Poin/Kg</span>
-        </div>
-        <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
-      </div>`;
+    kC.innerHTML += `<div class="waste-card" onclick="openDetail('${w.id}','kertas')">
+      <img class="wci" src="${w.img}" alt="${w.nama}" onerror="this.style.display='none'">
+      <div style="flex:1">
+        <span class="waste-badge" style="background:${w.badgeBg};color:${w.badgeColor}">${w.kode}</span>
+        <h4>${w.nama}</h4><p>${w.jenis}</p>
+        <span class="poin-chip">🌿 ${w.poin} Poin/Kg</span>
+      </div>
+      <div class="chevron"><i class="fa-solid fa-chevron-right"></i></div>
+    </div>`;
   });
 }
 
@@ -1211,9 +1336,9 @@ function openDetail(id, cat) {
   const w   = arr.find(x => x.id === id);
   if (!w) return;
   document.getElementById("detail-hero-img").src     = w.img;
-  const badgeEl                                       = document.getElementById("detail-badge");
-  badgeEl.textContent                                 = w.kode;
-  badgeEl.style.cssText                               = "background-color:" + w.badgeColor + ";color:#fff;display:inline-block;";
+  const badge = document.getElementById("detail-badge");
+  badge.textContent = w.kode;
+  badge.style.cssText = "background-color:" + w.badgeColor + ";color:#fff;display:inline-block;";
   document.getElementById("detail-title").textContent   = w.nama;
   document.getElementById("detail-nama").textContent    = w.nama;
   document.getElementById("detail-jenis").textContent   = w.jenis + " — " + w.kode;
@@ -1221,96 +1346,90 @@ function openDetail(id, cat) {
   document.getElementById("detail-harga").textContent   = w.harga;
   document.getElementById("detail-poin").textContent    = w.poin;
   document.getElementById("detail-desc").textContent    = w.desc;
-  const tipsCont = document.getElementById("detail-tips");
-  tipsCont.innerHTML = "";
-  w.tips.forEach(t => {
-    tipsCont.innerHTML += `<div class="tips-item"><i class="fa-solid fa-circle-check"></i><span>${t}</span></div>`;
-  });
+  const tipsEl = document.getElementById("detail-tips");
+  tipsEl.innerHTML = "";
+  w.tips.forEach(t => { tipsEl.innerHTML += `<div class="tips-item"><i class="fa-solid fa-circle-check"></i><span>${t}</span></div>`; });
   document.getElementById("screen-app").classList.remove("active");
   document.getElementById("screen-detail").classList.add("active");
-  window.scrollTo({ top: 0, behavior: "instant" });
+  window.scrollTo({ top:0, behavior:"instant" });
 }
-
 function closeDetail() {
   document.getElementById("screen-detail").classList.remove("active");
   document.getElementById("screen-app").classList.add("active");
-  window.scrollTo({ top: 0, behavior: "instant" });
+  window.scrollTo({ top:0, behavior:"instant" });
 }
 
 // ═══════════════════════════════════════════════════════
-// NAVIGATION
+// NAV
 // ═══════════════════════════════════════════════════════
 function goTab(id) {
-  document.querySelectorAll(".tab-page").forEach(t  => t.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach(b  => b.classList.remove("active"));
-  document.getElementById("tab-" + id)?.classList.add("active");
-  document.getElementById("nav-" + id)?.classList.add("active");
-  if (id === "beranda")    { refreshCurrentUser(); populateUI(); }
-  if (id === "ranking")    { renderRanking(); }
-  if (id === "aktifitas")  { refreshCurrentUser(); renderActivity(); }
-  if (id === "scan" && currentUser?.role === "petugas") { renderMuridList(); }
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.querySelectorAll(".tab-page").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-"+id)?.classList.add("active");
+  document.getElementById("nav-"+id)?.classList.add("active");
+  if (id === "beranda")   { populateUI(); }
+  if (id === "ranking")   { renderRanking(); }
+  if (id === "aktifitas") { renderActivity(); }
+  if (id === "scan" && currentUser?.role === "petugas") renderMuridList();
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
-
-function showCat(type) {
-  document.getElementById("cat-plastik").style.display = type === "p" ? "" : "none";
-  document.getElementById("cat-kertas").style.display  = type === "k" ? "" : "none";
-  document.getElementById("cat-p-btn").classList.toggle("on", type === "p");
-  document.getElementById("cat-k-btn").classList.toggle("on", type === "k");
+function showCat(t) {
+  document.getElementById("cat-plastik").style.display = t==="p"?"":"none";
+  document.getElementById("cat-kertas").style.display  = t==="k"?"":"none";
+  document.getElementById("cat-p-btn").classList.toggle("on", t==="p");
+  document.getElementById("cat-k-btn").classList.toggle("on", t==="k");
 }
 
 // ═══════════════════════════════════════════════════════
 // UBAH KATA SANDI
-// PERBAIKAN BUG #2: Pakai hash, bukan plain text
 // ═══════════════════════════════════════════════════════
-function changePassword() {
-  if (currentUser.role !== "murid") return showToast("Petugas tidak bisa ubah sandi di sini.", "error");
+async function changePassword() {
+  if (currentUser.role !== "murid") return;
   const op = document.getElementById("old-pass").value;
   const np = document.getElementById("new-pass").value;
   if (!op || !np)    return showToast("Semua kolom wajib diisi!", "error");
-  if (np.length < 6) return showToast("Kata sandi baru minimal 6 karakter!", "error");
-
-  const freshUser = findUser(currentUser.nisn);
-  if (!freshUser) return showToast("Data pengguna tidak ditemukan!", "error");
-
-  const oldHash = simpleHash(op);
-  // Fallback untuk akun lama yang masih simpan plain text
-  const passOk  = freshUser.passHash
-    ? freshUser.passHash === oldHash
-    : freshUser.pass === op;
-  if (!passOk) return showToast("Kata sandi lama salah!", "error");
-
-  freshUser.passHash = simpleHash(np);
-  delete freshUser.pass;
-  updateAndSetCurrent(freshUser);
-  document.getElementById("old-pass").value = "";
-  document.getElementById("new-pass").value = "";
-  showToast("✓ Kata sandi berhasil diperbarui!", "success");
+  if (np.length < 6) return showToast("Minimal 6 karakter!", "error");
+  showLoading("Memperbarui kata sandi...");
+  try {
+    const r = await api("getUser", { nisn: currentUser.nisn });
+    if (r.user.passHash !== simpleHash(op)) throw new Error("Kata sandi lama salah!");
+    await apiPost({ action:"updateUser", nisn: currentUser.nisn, passHash: simpleHash(np) });
+    hideLoading();
+    document.getElementById("old-pass").value = "";
+    document.getElementById("new-pass").value = "";
+    showToast("✓ Kata sandi berhasil diperbarui!", "success");
+  } catch(e) {
+    hideLoading();
+    showToast(e.message, "error");
+  }
 }
 
 // ═══════════════════════════════════════════════════════
 // EDIT PROFILE
 // ═══════════════════════════════════════════════════════
 function openEditProfil() {
-  if (currentUser) {
-    document.getElementById("edit-nama").value  = currentUser.nama  || "";
-    document.getElementById("edit-kelas").value = currentUser.kelas || "";
-  }
-  // Sembunyikan field kelas untuk petugas
-  const kelasWrap = document.getElementById("edit-kelas-wrap");
-  if (kelasWrap) kelasWrap.style.display = currentUser.role === "petugas" ? "none" : "";
+  document.getElementById("edit-nama").value  = currentUser?.nama  || "";
+  document.getElementById("edit-kelas").value = currentUser?.kelas || "";
+  const kw = document.getElementById("edit-kelas-wrap");
+  if (kw) kw.style.display = currentUser?.role === "petugas" ? "none" : "";
   openModal("modal-profil");
 }
 
-function saveProfile() {
+async function saveProfile() {
   const nama  = (document.getElementById("edit-nama").value  || "").trim();
   const kelas = (document.getElementById("edit-kelas").value || "").trim();
   if (!nama) return showToast("Nama tidak boleh kosong!", "error");
-  currentUser.nama = nama;
-  if (currentUser.role === "murid" && kelas) currentUser.kelas = kelas;
-  if (currentUser.role === "murid") {
-    updateAndSetCurrent(currentUser);
+  if (currentUser.role === "murid" && APPS_SCRIPT_URL) {
+    showLoading("Menyimpan profil...");
+    try {
+      await apiPost({ action:"updateUser", nisn: currentUser.nisn, nama, kelas });
+      currentUser.nama  = nama;
+      if (kelas) currentUser.kelas = kelas;
+      saveSession(currentUser);
+      hideLoading();
+    } catch(e) { hideLoading(); return showToast("Gagal: " + e.message, "error"); }
   } else {
+    currentUser.nama = nama;
     saveSession(currentUser);
   }
   populateUI();
@@ -1327,8 +1446,7 @@ function doLogout() {
   document.getElementById("screen-app").classList.remove("active");
   document.getElementById("screen-auth").classList.add("active");
   ["l-nisn","l-pass","l-petid","l-petpass"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
+    const el = document.getElementById(id); if(el) el.value = "";
   });
   showToast("Berhasil keluar", "");
 }
@@ -1337,21 +1455,21 @@ function doLogout() {
 // SLIDER
 // ═══════════════════════════════════════════════════════
 function initSlider() {
-  const track     = document.getElementById("slider-track");
-  const bulletsEl = document.getElementById("slider-bullets");
-  const total     = track.children.length;
-  let idx         = 0;
-  bulletsEl.innerHTML = "";
+  const track  = document.getElementById("slider-track");
+  const buls   = document.getElementById("slider-bullets");
+  const total  = track.children.length;
+  let idx = 0;
+  buls.innerHTML = "";
   for (let i = 0; i < total; i++) {
     const s = document.createElement("span");
-    if (i === 0) s.classList.add("on");
-    bulletsEl.appendChild(s);
+    if (i===0) s.classList.add("on");
+    buls.appendChild(s);
   }
-  if (window._sliderInterval) clearInterval(window._sliderInterval);
-  window._sliderInterval = setInterval(() => {
-    idx = (idx + 1) % total;
-    track.style.transform = "translateX(-" + (idx * 100) + "%)";
-    Array.from(bulletsEl.children).forEach((b, i) => b.classList.toggle("on", i === idx));
+  if (window._sliderInt) clearInterval(window._sliderInt);
+  window._sliderInt = setInterval(() => {
+    idx = (idx+1) % total;
+    track.style.transform = "translateX(-" + (idx*100) + "%)";
+    Array.from(buls.children).forEach((b,i) => b.classList.toggle("on", i===idx));
   }, 4000);
 }
 
@@ -1361,38 +1479,61 @@ function initSlider() {
 function openModal(id)  { document.getElementById(id)?.classList.add("show"); }
 function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
 document.querySelectorAll(".modal-bg").forEach(m => {
-  m.addEventListener("click", e => { if (e.target === m) m.classList.remove("show"); });
+  m.addEventListener("click", e => { if (e.target===m) m.classList.remove("show"); });
 });
 
 // ═══════════════════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════════════════
-function showToast(msg, type = "") {
-  const t       = document.getElementById("toast");
+function showToast(msg, type="") {
+  const t = document.getElementById("toast");
   t.textContent = msg;
-  t.className   = "toast" + (type ? " " + type : "");
+  t.className   = "toast" + (type?" "+type:"");
   t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 3000);
+  setTimeout(() => t.classList.remove("show"), 3200);
 }
 
 // ═══════════════════════════════════════════════════════
-// AUTO LOGIN (persistent session)
+// AUTO LOGIN
 // ═══════════════════════════════════════════════════════
-window.addEventListener("DOMContentLoaded", () => {
-  const session = getSession();
-  if (session && session.nama) {
-    if (session.role === "murid") {
-      const fresh = findUser(session.nisn);
-      currentUser = fresh || null;
-    } else {
-      // Validasi ID petugas masih ada di config
-      const acct  = PETUGAS_ACCOUNTS.find(a => a.id === session.id);
-      currentUser = acct ? session : null;
+window.addEventListener("DOMContentLoaded", async () => {
+  // Cek URL API
+  if (!APPS_SCRIPT_URL) {
+    document.getElementById("setup-banner").classList.add("show");
+  } else {
+    // Ping API
+    try {
+      await api("getStats");
+      setSyncStatus("online");
+    } catch(e) {
+      setSyncStatus("");
     }
-    if (currentUser) {
-      document.getElementById("screen-auth").classList.remove("active");
-      launchApp();
-      return;
+  }
+
+  // Pre-fill setup URL jika sudah ada
+  document.getElementById("setup-url").value = APPS_SCRIPT_URL;
+
+  const session = getSession();
+  if (session?.nama) {
+    if (session.role === "petugas") {
+      const acct = PETUGAS_ACCOUNTS.find(a => a.id === session.id);
+      if (acct) {
+        currentUser = session;
+        document.getElementById("screen-auth").classList.remove("active");
+        launchApp();
+        return;
+      }
+    } else if (session.role === "murid" && APPS_SCRIPT_URL) {
+      try {
+        showLoading("Memulihkan sesi...");
+        const r = await api("getUser", { nisn: session.nisn });
+        currentUser = r.user;
+        saveSession(currentUser);
+        hideLoading();
+        document.getElementById("screen-auth").classList.remove("active");
+        launchApp();
+        return;
+      } catch(e) { hideLoading(); }
     }
   }
   document.getElementById("screen-auth").classList.add("active");
