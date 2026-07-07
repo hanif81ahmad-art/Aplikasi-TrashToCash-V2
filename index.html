@@ -139,6 +139,21 @@ input,select{font-family:inherit;}
   background:var(--teal);color:#fff;font-weight:700;padding:11px 22px;border-radius:999px;font-size:13.5px;
 }
 
+/* Petugas info card */
+.petugas-card{
+  border-radius:var(--r-lg);
+  background:linear-gradient(120deg,var(--teal) 0%,#0B3D3A 100%);
+  color:#fff;padding:22px 20px;position:relative;overflow:hidden;
+  box-shadow:var(--shadow);margin-top:-14px;
+}
+.petugas-card::after{
+  content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;
+  background:radial-gradient(circle,var(--lime) 0%,transparent 70%);opacity:.35;
+}
+.petugas-card .ic{font-size:26px;margin-bottom:6px;}
+.petugas-card h3{margin:0 0 4px;font-size:16px;}
+.petugas-card p{margin:0;font-size:12.5px;opacity:.85;line-height:1.5;}
+
 .section-title{
   display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px;
 }
@@ -258,6 +273,31 @@ input,select{font-family:inherit;}
 .logout-btn{
   width:100%;margin-top:16px;background:#fff;color:var(--coral);border:1.5px solid var(--coral);
   font-weight:700;padding:13px;border-radius:var(--r-md);font-size:14px;
+}
+
+/* Switch account */
+.switch-list{margin-top:10px;background:#fff;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);}
+.switch-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);}
+.switch-item:last-child{border-bottom:none;}
+.switch-item.active{background:var(--mint-bg);}
+.switch-item .circle{
+  width:36px;height:36px;border-radius:50%;background:var(--mint-bg);color:var(--teal-dark);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;
+}
+.switch-item.active .circle{background:var(--lime);}
+.switch-item-mid{flex:1;min-width:0;cursor:pointer;}
+.switch-item-mid h4{margin:0;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.switch-item-mid span{font-size:11px;color:var(--sub);}
+.switch-item .role-tag{
+  font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--mint-bg);color:var(--teal);
+  white-space:nowrap;flex-shrink:0;
+}
+.switch-item .role-tag.petugas{background:#FFF3D6;color:#8a6300;}
+.switch-item .remove-btn{color:var(--sub);font-size:15px;padding:4px 6px;flex-shrink:0;}
+.switch-empty{padding:16px;text-align:center;color:var(--sub);font-size:12.5px;}
+.add-acc-btn{
+  width:100%;padding:13px;border-radius:var(--r-md);border:1.5px dashed var(--teal);color:var(--teal);
+  font-weight:700;font-size:13.5px;margin-top:10px;background:#fff;
 }
 
 /* ====================== BOTTOM NAV ====================== */
@@ -475,6 +515,10 @@ input,select{font-family:inherit;}
       <label>Jumlah Poin Ditukar</label>
       <input type="number" id="inpTukarPoin" placeholder="Contoh: 200">
     </div>
+    <div class="field">
+      <label>Konfirmasi Password</label>
+      <input type="password" id="inpTukarPw" placeholder="••••••••">
+    </div>
     <div id="tukarErr" class="err-msg"></div>
     <button class="btn-main" onclick="prosesTukar()">Tukar Sekarang</button>
   </div>
@@ -497,6 +541,26 @@ input,select{font-family:inherit;}
     </div>
     <div id="setorErr" class="err-msg"></div>
     <button class="btn-main" onclick="prosesSetor()">Simpan Setoran</button>
+  </div>
+</div>
+
+<!-- ===================== MODAL: GANTI PASSWORD ===================== -->
+<div class="overlay" id="overlayGantiPw">
+  <div class="sheet" style="position:relative;">
+    <span class="close-x" onclick="closeOverlay('overlayGantiPw')">✕</span>
+    <div class="sheet-handle"></div>
+    <h2>Ganti Password</h2>
+    <p style="color:var(--sub);font-size:12.5px;margin:0 0 16px;">Masukkan password lama untuk konfirmasi sebelum mengganti ke password baru.</p>
+    <div class="field">
+      <label>Password Lama</label>
+      <input type="password" id="inpPwLama" placeholder="••••••••">
+    </div>
+    <div class="field">
+      <label>Password Baru</label>
+      <input type="password" id="inpPwBaru" placeholder="Minimal 4 karakter">
+    </div>
+    <div id="gantiPwErr" class="err-msg"></div>
+    <button class="btn-main" onclick="prosesGantiPassword()">Simpan Password Baru</button>
   </div>
 </div>
 
@@ -525,6 +589,45 @@ let currentUserCache = null; // cache data user yang sedang login (di-refresh ti
 function getSession(){ return localStorage.getItem('ttc_session') || null; }
 function setSession(username){ localStorage.setItem('ttc_session', username); }
 function clearSession(){ localStorage.removeItem('ttc_session'); currentUserCache = null; }
+
+/* ---- Daftar akun tersimpan di device ini (untuk fitur "Ganti Akun") ----
+   Cuma nyimpan info ringan (username, nama, role, kelas) — TIDAK menyimpan
+   password. Berlaku untuk kombinasi apa pun: siswa-siswa, petugas-petugas,
+   atau campuran siswa & petugas dalam satu device. */
+function getSavedAccounts(){
+  try{ return JSON.parse(localStorage.getItem('ttc_accounts')||'[]'); }
+  catch(e){ return []; }
+}
+function saveAccountToList(user){
+  let list = getSavedAccounts().filter(a=>a.username!==user.username);
+  list.unshift({username:user.username, nama:user.nama, role:user.role, kelas:user.kelas||''});
+  if(list.length>8) list = list.slice(0,8);
+  localStorage.setItem('ttc_accounts', JSON.stringify(list));
+}
+function removeAccountFromList(username){
+  const list = getSavedAccounts().filter(a=>a.username!==username);
+  localStorage.setItem('ttc_accounts', JSON.stringify(list));
+  renderAkun();
+}
+async function switchAccount(username){
+  const current = getCurrentUser();
+  if(current && current.username===username) return;
+  const prevSession = getSession();
+  toast('Mengganti akun...');
+  setSession(username);
+  const user = await refreshCurrentUser();
+  if(!user){
+    toast('Akun tidak ditemukan, dihapus dari daftar.');
+    removeAccountFromList(username);
+    if(prevSession) setSession(prevSession); else clearSession();
+    await refreshCurrentUser();
+    renderTopbar(); renderBeranda(); renderAkun();
+    return;
+  }
+  saveAccountToList(user);
+  renderTopbar(); renderBeranda(); renderAkun();
+  toast(`Beralih ke ${user.nama} 👋`);
+}
 
 // Dipakai render sinkron (renderBeranda, renderAkun, dst) — cukup baca cache,
 // tidak perlu nunggu network tiap kali halaman di-render ulang.
@@ -722,7 +825,14 @@ function renderTopbar(){
 function renderBeranda(){
   const user = getCurrentUser();
   const area = document.getElementById('berandaWalletArea');
-  if(user){
+  if(user && user.role==='petugas'){
+    area.innerHTML = `
+      <div class="petugas-card">
+        <div class="ic">🧑‍🔧</div>
+        <h3>Akun Petugas</h3>
+        <p>Kamu login sebagai petugas. Buka tab QRIS untuk scan QR siswa & catat setoran sampah mereka.</p>
+      </div>`;
+  } else if(user){
     area.innerHTML = `
       <div class="wallet-card">
         <div class="lbl">Saldo Poin Sampah</div>
@@ -916,10 +1026,13 @@ async function prosesSetor(){
   const errBox = document.getElementById('setorErr');
   if(!berat || berat<=0){ errBox.textContent='Masukkan berat sampah yang valid.'; errBox.classList.add('show'); return; }
 
+  const petugas = getCurrentUser();
+  if(!petugas || petugas.role!=='petugas'){ errBox.textContent='Sesi petugas tidak valid, silakan masuk ulang.'; errBox.classList.add('show'); return; }
+
   const btn = document.querySelector('#overlaySetor .btn-main');
   const btnTxt = btn.textContent; btn.textContent = 'Menyimpan...'; btn.disabled = true;
 
-  const res = await apiPost('setor', {username: scanTargetSiswa, jenisId, berat});
+  const res = await apiPost('setor', {username: scanTargetSiswa, jenisId, berat, petugas: petugas.username});
 
   btn.textContent = btnTxt; btn.disabled = false;
 
@@ -953,6 +1066,8 @@ async function renderRank(){
 function renderAkun(){
   const user = getCurrentUser();
   const area = document.getElementById('akunArea');
+  const saved = getSavedAccounts();
+
   if(!user){
     area.innerHTML = `
       <div class="locked-card" style="margin-top:16px;">
@@ -960,7 +1075,8 @@ function renderAkun(){
         <h3 style="margin:0;font-size:15px;">Belum masuk akun</h3>
         <p>Masuk dulu untuk melihat info akun kamu.</p>
         <button onclick="openAuth('login')">Masuk Sekarang</button>
-      </div>`;
+      </div>
+      ${saved.length ? renderSwitchSection(saved, null) : ''}`;
     return;
   }
   area.innerHTML = `
@@ -975,14 +1091,50 @@ function renderAkun(){
       <div class="acc-item" onclick="showUpdateLog()"><span class="ic">🆕</span> Update Terbaru <span class="arrow">›</span></div>
       <div class="acc-item" onclick="toast('TrashToCash v1.0 — Bersih itu berharga ♻️')"><span class="ic">ℹ️</span> Info Lainnya <span class="arrow">›</span></div>
     </div>
+    ${renderSwitchSection(saved, user.username)}
     <button class="logout-btn" onclick="doLogout()">Keluar Akun</button>`;
 }
-async function promptGantiPassword(){
-  const np = prompt('Masukkan password baru:');
-  if(np===null) return;
-  if(np.length<4){ toast('Password minimal 4 karakter'); return; }
-  const res = await apiPost('changePassword', {username:getCurrentUser().username, newPassword:np});
-  if(res.error){ toast(res.error); return; }
+function renderSwitchSection(saved, activeUsername){
+  return `
+    <div class="section-title" style="margin:22px 0 10px;"><h2>Ganti Akun</h2><span class="tag">${saved.length} tersimpan</span></div>
+    <div class="switch-list">
+      ${saved.length ? saved.map(a=>`
+        <div class="switch-item ${a.username===activeUsername?'active':''}">
+          <div class="circle">${initials(a.nama)}</div>
+          <div class="switch-item-mid" onclick="switchAccount('${a.username}')">
+            <h4>${a.nama}${a.username===activeUsername?' · aktif':''}</h4>
+            <span>@${a.username}${a.role==='siswa' && a.kelas ? ' · Kelas '+a.kelas : ''}</span>
+          </div>
+          <span class="role-tag ${a.role==='petugas'?'petugas':''}">${a.role==='petugas'?'🧑‍🔧 Petugas':'🎓 Siswa'}</span>
+          <span class="remove-btn" onclick="event.stopPropagation();removeAccountFromList('${a.username}')">✕</span>
+        </div>`).join('') : `<div class="switch-empty">Belum ada akun tersimpan di device ini.</div>`}
+    </div>
+    <button class="add-acc-btn" onclick="openAuth('login')">+ Tambah / Masuk Akun Lain</button>`;
+}
+function promptGantiPassword(){
+  document.getElementById('inpPwLama').value='';
+  document.getElementById('inpPwBaru').value='';
+  document.getElementById('gantiPwErr').classList.remove('show');
+  openOverlay('overlayGantiPw');
+}
+async function prosesGantiPassword(){
+  const user = getCurrentUser();
+  const oldPassword = document.getElementById('inpPwLama').value;
+  const newPassword = document.getElementById('inpPwBaru').value;
+  const err = document.getElementById('gantiPwErr');
+  err.classList.remove('show');
+  if(!oldPassword){ err.textContent='Masukkan password lama.'; err.classList.add('show'); return; }
+  if(!newPassword || newPassword.length<4){ err.textContent='Password baru minimal 4 karakter.'; err.classList.add('show'); return; }
+
+  const btn = document.querySelector('#overlayGantiPw .btn-main');
+  const btnTxt = btn.textContent; btn.textContent = 'Menyimpan...'; btn.disabled = true;
+
+  const res = await apiPost('changePassword', {username:user.username, oldPassword, newPassword});
+
+  btn.textContent = btnTxt; btn.disabled = false;
+
+  if(res.error){ err.textContent = res.error; err.classList.add('show'); return; }
+  closeOverlay('overlayGantiPw');
   toast('Password berhasil diubah');
 }
 function showAbout(){
@@ -1000,17 +1152,20 @@ function doLogout(){
 /* ---------------------- TUKAR POIN ---------------------- */
 function openTukar(){
   document.getElementById('inpTukarPoin').value='';
+  document.getElementById('inpTukarPw').value='';
   document.getElementById('tukarErr').classList.remove('show');
   openOverlay('overlayTukar');
 }
 async function prosesTukar(){
   const user = getCurrentUser();
   const jumlah = parseInt(document.getElementById('inpTukarPoin').value);
+  const password = document.getElementById('inpTukarPw').value;
   const err = document.getElementById('tukarErr');
   if(!jumlah || jumlah<=0){ err.textContent='Masukkan jumlah poin yang valid.'; err.classList.add('show'); return; }
   if(jumlah > user.poin){ err.textContent='Poin kamu tidak mencukupi.'; err.classList.add('show'); return; }
+  if(!password){ err.textContent='Masukkan password untuk konfirmasi.'; err.classList.add('show'); return; }
 
-  const res = await apiPost('tukar', {username:user.username, jumlah});
+  const res = await apiPost('tukar', {username:user.username, jumlah, password});
   if(res.error){ err.textContent = res.error; err.classList.add('show'); return; }
 
   currentUserCache = res.user;
@@ -1067,6 +1222,7 @@ async function handleAuthSubmit(e){
     if(res.error){ errBox.textContent = res.error; errBox.classList.add('show'); return false; }
     setSession(res.user.username);
     currentUserCache = res.user;
+    saveAccountToList(res.user);
     toast(`Selamat datang, ${res.user.nama}! 👋`);
     closeOverlay('overlayAuth');
     renderTopbar(); renderBeranda();
@@ -1083,6 +1239,7 @@ async function handleAuthSubmit(e){
     if(res.error){ errBox.textContent = res.error; errBox.classList.add('show'); return false; }
     setSession(res.user.username);
     currentUserCache = res.user;
+    saveAccountToList(res.user);
     toast(`Akun berhasil dibuat. Selamat datang, ${res.user.nama}!`);
     closeOverlay('overlayAuth');
     renderTopbar(); renderBeranda();
