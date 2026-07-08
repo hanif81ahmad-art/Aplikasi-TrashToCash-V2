@@ -1006,26 +1006,20 @@ function renderQris(){
   if(user.role==='siswa'){
     area.innerHTML = `
       <div class="qr-wrap">
-        <div id="qrcode"></div>
+        <div style="font-size:40px;margin-bottom:10px;">✅</div>
         <h3>${user.nama}</h3>
         <p>Kelas ${user.kelas} · @${user.username}</p>
       </div>
-      <p class="scan-hint">Tunjukkan QR ini ke petugas saat menyetor sampah.</p>`;
-    const payload = JSON.stringify({username:user.username, nama:user.nama, kelas:user.kelas});
-    setTimeout(()=>{
-      document.getElementById('qrcode').innerHTML = '';
-      new QRCode(document.getElementById('qrcode'), {text:payload, width:190, height:190, colorDark:'#0B3D3A', colorLight:'#ffffff'});
-    }, 30);
+      <p class="scan-hint">Tidak perlu menunjukkan QR. Cukup sebutkan nama & kelas kamu ke petugas saat menyetor sampah, poin akan diinput langsung oleh petugas.</p>`;
   } else {
     area.innerHTML = `
-      <div class="section-title" style="margin-top:0;"><h2>Scan QR Siswa</h2><span class="tag">Petugas</span></div>
-      <div class="scan-box"><video id="scanVideo" playsinline></video><div class="scan-frame"></div></div>
-      <div class="qris-actions">
-        <button class="btn-scan" onclick="startScanner()">🔄 Ulangi Scan</button>
-        <button class="btn-manual" onclick="openPilihSiswa()">👤 Pilih Manual</button>
-      </div>
-      <p class="scan-hint">Arahkan kamera ke QR milik siswa, atau pilih manual kalau QR tidak tersedia.</p>`;
-    startScanner();
+      <div class="section-title" style="margin-top:0;"><h2>Setor Sampah Siswa</h2><span class="tag">Petugas</span></div>
+      <div class="locked-card" style="margin-top:0;">
+        <div class="ic">👤</div>
+        <h3 style="margin:0;font-size:15px;">Pilih Siswa untuk Disetorkan</h3>
+        <p>Pilih kelas lalu tap nama siswa untuk mencatat setoran sampahnya.</p>
+        <button onclick="openPilihSiswa()">Pilih Siswa 👉</button>
+      </div>`;
   }
 }
 function startScanner(){
