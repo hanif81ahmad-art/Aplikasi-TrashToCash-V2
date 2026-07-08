@@ -678,51 +678,51 @@ const WASTE_TYPES = [
   {id:'pete', kategori:'plastik', kode:'PETE / PET', nama:'Polyethylene Terephthalate', poin:150, warna:'#4FC3F7',
    icon:'💧', contoh:'Botol air mineral, botol soda, wadah makanan transparan.',
    desk:'Jernih, transparan, dan ringan. Paling umum didaur ulang menjadi serat pakaian, karpet, atau botol baru.',
-   img:'https://picsum.photos/seed/pete/600/400'},
+   img:'PETE.webp'},
   {id:'hdpe', kategori:'plastik', kode:'HDPE', nama:'High-Density Polyethylene', poin:180, warna:'#81C784',
    icon:'🧴', contoh:'Botol susu, botol sampo, botol deterjen, botol oli mesin.',
    desk:'Kuat, keras, dan tahan suhu panas. Bernilai tinggi dan mudah didaur ulang menjadi pipa atau botol baru.',
-   img:'https://picsum.photos/seed/hdpe/600/400'},
+   img:'HDPE.JPG'},
   {id:'pvc', kategori:'plastik', kode:'PVC / V', nama:'Polyvinyl Chloride', poin:50, warna:'#E57373',
    icon:'🚰', contoh:'Pipa air, isolasi kabel, plastik pembungkus (wrap).',
    desk:'Sangat kuat & fleksibel namun mengandung bahan kimia berbahaya. Sulit didaur ulang & berpotensi melepas racun jika dibakar.',
-   img:'https://picsum.photos/seed/pvc/600/400'},
+   img:'PVC.jpg'},
   {id:'ldpe', kategori:'plastik', kode:'LDPE', nama:'Low-Density Polyethylene', poin:100, warna:'#FFD54F',
    icon:'🛍️', contoh:'Kantong kresek, plastik pembungkus makanan, tutup plastik.',
    desk:'Fleksibel, kuat, tahan air. Dapat didaur ulang namun sering tersangkut di mesin pengolah sampah.',
-   img:'https://picsum.photos/seed/ldpe/600/400'},
+   img:'LDPE.jpg'},
   {id:'pp', kategori:'plastik', kode:'PP', nama:'Polypropylene', poin:130, warna:'#BA68C8',
    icon:'🥡', contoh:'Kotak bekal, tutup botol, sedotan, karung beras.',
    desk:'Kuat, ringan, tahan panas yang baik. Bisa didaur ulang jadi produk tahan lama seperti sapu / sikat.',
-   img:'https://picsum.photos/seed/pp/600/400'},
+   img:'PP.jpg'},
   {id:'ps', kategori:'plastik', kode:'PS', nama:'Polystyrene', poin:30, warna:'#F06292',
    icon:'☕', contoh:'Styrofoam makanan, cangkir kopi sekali pakai, tempat telur.',
    desk:'Keras / bisa berupa busa (styrofoam) yang rapuh. Sangat sulit didaur ulang & berbahaya jika dipakai untuk makanan panas.',
-   img:'https://picsum.photos/seed/ps/600/400'},
+   img:'PS.jpg'},
   {id:'other', kategori:'plastik', kode:'Other / O', nama:'Lainnya', poin:40, warna:'#90A4AE',
    icon:'🔘', contoh:'Polikarbonat (galon air minum), CD, suku cadang mobil.',
    desk:'Campuran berbagai jenis plastik atau jenis baru. Sangat sulit untuk didaur ulang.',
-   img:'https://picsum.photos/seed/other/600/400'},
+   img:'POLIKARBONAT.webp'},
   {id:'hvs', kategori:'kertas', kode:'HVS', nama:'Kertas Putih', poin:120, warna:'#90CAF9',
    icon:'📄', contoh:'Kertas dokumen kantor, sekolah, atau fotokopi.',
    desk:'Kertas putih bersih yang bernilai tinggi untuk didaur ulang menjadi kertas baru.',
-   img:'https://picsum.photos/seed/hvs/600/400'},
+   img:'HVS.jpg'},
   {id:'koran', kategori:'kertas', kode:'Koran & Majalah', nama:'Kertas Cetak', poin:90, warna:'#A1887F',
    icon:'📰', contoh:'Koran bekas dan majalah.',
    desk:'Relatif mudah diolah karena teknologi modern mampu memisahkan tinta dari serat kertas.',
-   img:'https://picsum.photos/seed/koran/600/400'},
+   img:'KORAN DAN MAJALAH.jpg'},
   {id:'kardus', kategori:'kertas', kode:'Kardus & Karton', nama:'Corrugated Cardboard', poin:110, warna:'#D7A86E',
    icon:'📦', contoh:'Kardus bekas, kotak paket, karton tebal.',
    desk:'Sangat bernilai untuk didaur ulang. Pastikan selotip plastik sudah dilepas sebelum disetor.',
-   img:'https://picsum.photos/seed/kardus/600/400'},
+   img:'KARDUS DAN KARTON.png'},
   {id:'amplop', kategori:'kertas', kode:'Surat & Amplop', nama:'Kertas Korespondensi', poin:80, warna:'#CE93D8',
    icon:'✉️', contoh:'Surat, amplop tanpa jendela plastik.',
    desk:'Kertas korespondensi yang bebas dari jendela plastik transparan agar mudah didaur ulang.',
-   img:'https://picsum.photos/seed/amplop/600/400'},
+   img:'SURAT DAN AMPLOP.jpg'},
   {id:'dupleks', kategori:'kertas', kode:'Kertas Dupleks', nama:'Kertas Tebal', poin:70, warna:'#FFB74D',
    icon:'🥫', contoh:'Kemasan kotak makanan atau kotak obat.',
    desk:'Kertas tebal yang sering digunakan sebagai kemasan kotak makanan atau obat.',
-   img:'https://picsum.photos/seed/dupleks/600/400'}
+   img:'KERTAS DUPLEKS.jpg'}
 ];
 
 const TRIVIA = [
@@ -737,14 +737,9 @@ const TRIVIA = [
 // Ganti "img" dengan link gambar asli (Google Drive/hosting sekolah), formatnya:
 // https://drive.google.com/uc?export=view&id=ID_FILE_KAMU
 const MADING_SLIDES = [
-  {img:'https://picsum.photos/seed/mading1/700/450', judul:'Lomba Pilah Sampah Antar Kelas', teks:'Yuk ikut lomba pilah sampah tanggal 20 Juli, hadiah menarik menanti!'},
-  {img:'https://picsum.photos/seed/mading2/700/450', judul:'Jadwal Setor Sampah Mingguan', teks:'Setor sampah plastik & kertas setiap Jumat pukul 07.00–08.00 di pos daur ulang.'},
-  {img:'https://picsum.photos/seed/mading3/700/450', judul:'Panen Poin, Tukar Hadiah!', teks:'Kumpulkan poin sebanyak-banyaknya dan tukarkan jadi saldo mulai bulan ini.'},
-  {img:'https://picsum.photos/seed/mading4/700/450', judul:'Gerakan Bebas Sampah Kelas', teks:'Kelas dengan setoran sampah terbanyak akan diumumkan tiap akhir bulan.'},
-  {img:'https://picsum.photos/seed/mading5/700/450', judul:'Terima Kasih Sudah Peduli!', teks:'Setiap sampah yang kamu setor membantu bumi kita tetap sehat. 🌍'},
-  {img:'https://picsum.photos/seed/mading6/700/450', judul:'Sosialisasi Pemilahan Sampah', teks:'Sosialisasi bersama petugas kebersihan, Senin depan di lapangan upacara pukul 07.30.'},
-  {img:'https://picsum.photos/seed/mading7/700/450', judul:'Pos Daur Ulang Buka Setiap Hari', teks:'Mulai bulan ini, pos daur ulang buka setiap hari sekolah, tidak hanya hari Jumat.'},
-  {img:'https://picsum.photos/seed/mading8/700/450', judul:'Kelas Juara Bulan Ini: 9A', teks:'Selamat kepada kelas 9A yang menyetor sampah terbanyak bulan ini. Pertahankan terus!'}
+  {img:'banner1.png', judul:'Lomba Pilah Sampah Antar Kelas', teks:'Yuk ikut lomba pilah sampah tanggal 20 Juli, hadiah menarik menanti!'},
+  {img:'banner2.png', judul:'Jadwal Setor Sampah Mingguan', teks:'Setor sampah plastik & kertas setiap Jumat pukul 07.00–08.00 di pos daur ulang.'},
+  {img:'banner3.png', judul:'Panen Poin, Tukar Hadiah!', teks:'Kumpulkan poin sebanyak-banyaknya dan tukarkan jadi saldo mulai bulan ini.'}
 ];
 
 // ---------- KONFIGURASI VIDEO MADING (bisa lebih dari satu, bentuknya slider) ----------
@@ -757,7 +752,9 @@ const MADING_SLIDES = [
 //               (pastikan akses file "Anyone with the link")
 const VIDEOS = [
   {type:'mp4', src:'vidio1.mp4', judul:'Video Sosialisasi Sekolah', desk:'Kenalan dengan program setor sampah & poin di sekolah kita.'},
-  {type:'mp4', src:'vidio2.webm', judul:'Video Sosialisasi Sekolah', desk:'Kenalan dengan program setor sampah & poin di sekolah kita.'}
+  {type:'mp4', src:'vidio2.webm', judul:'Video Sosialisasi Sekolah', desk:'Kenalan dengan program setor sampah & poin di sekolah kita.'},
+  {type:'youtube', src:'dyDgaQ1zPSg', judul:'Axioo Hype X1', desk:'Laptop 5Jt-an In This Economy! | Axioo Hype X1.'},
+  {type:'youtube', src:'IC8v0EnauOA', judul:'Axioo Hype 5', desk:'CUMA 5 JUTAAN AJA | Axioo HYPE 5 x JKT48.'}
   // Tambah video baru di bawah ini, contoh:
   // ,{type:'youtube', src:'abc12345XYZ', judul:'Cara Memilah Sampah', desk:'Tutorial singkat memilah sampah plastik dan kertas.'}
 ];
