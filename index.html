@@ -434,6 +434,37 @@ input,select{font-family:inherit;}
 .siswa-pick-item .mid span{font-size:11px;color:var(--sub);}
 .siswa-pick-item .go{color:var(--teal);font-size:18px;}
 .siswa-pick-empty{padding:24px;text-align:center;color:var(--sub);font-size:12.5px;}
+
+/* ====================== CAIRKAN SALDO ====================== */
+.cairkan-cta{
+  width:100%;margin-top:12px;background:rgba(255,255,255,.14);color:#fff;
+  font-weight:700;font-size:13px;padding:12px;border-radius:14px;
+  border:1.5px solid rgba(255,255,255,.35);
+}
+.pencairan-item{
+  background:#fff;border-radius:var(--r-md);padding:13px 14px;margin-top:10px;
+  box-shadow:var(--shadow);border:1px solid var(--line);
+}
+.pencairan-item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.pencairan-item h4{margin:0;font-size:13.5px;}
+.pencairan-item .jml{font-family:'Fredoka';font-size:15px;color:var(--teal);white-space:nowrap;}
+.pencairan-item .meta{font-size:11.5px;color:var(--sub);margin-top:3px;}
+.pencairan-item .waktu{font-size:10.5px;color:var(--sub);margin-top:2px;}
+.badge-status{
+  font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;display:inline-block;margin-top:8px;
+}
+.badge-status.menunggu{background:#FFF3D6;color:#8a6300;}
+.badge-status.selesai{background:#D9F2E4;color:#0E7C6B;}
+.badge-status.ditolak{background:#FFE0E0;color:#C0392B;}
+.pencairan-actions{display:flex;gap:8px;margin-top:10px;}
+.pencairan-actions button{flex:1;padding:9px;border-radius:10px;font-weight:700;font-size:12px;}
+.pencairan-actions .btn-selesai{background:var(--teal);color:#fff;}
+.pencairan-actions .btn-tolak{background:#fff;color:var(--coral);border:1.5px solid var(--coral);}
+.pencairan-empty{text-align:center;color:var(--sub);font-size:12.5px;padding:16px 0;}
+.hint-box{
+  background:var(--mint-bg);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--sub);
+  line-height:1.5;margin-bottom:2px;
+}
 </style>
 </head>
 <body>
@@ -516,8 +547,8 @@ input,select{font-family:inherit;}
       Mading
     </button>
     <button class="nav-btn" data-nav="qris" onclick="goPage('qris')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M19 19h2v2"/></svg>
-      QRIS
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6" fill="currentColor" stroke="none"/></svg>
+      About
     </button>
     <button class="nav-btn" data-nav="rank" onclick="goPage('rank')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a3 3 0 0 0 3 5M17 6h3a3 3 0 0 1-3 5"/></svg>
@@ -598,6 +629,66 @@ input,select{font-family:inherit;}
     </div>
     <div id="tukarErr" class="err-msg"></div>
     <button class="btn-main" onclick="prosesTukar()">Tukar Sekarang</button>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CAIRKAN SALDO ===================== -->
+<div class="overlay" id="overlayCairkan">
+  <div class="sheet" style="position:relative;">
+    <span class="close-x" onclick="closeOverlay('overlayCairkan')">✕</span>
+    <div class="sheet-handle"></div>
+    <h2>Cairkan Saldo</h2>
+    <p style="color:var(--sub);font-size:12.5px;margin:0 0 14px;">Saldo langsung dipotong saat diajukan. Petugas akan memproses & mencairkan sesuai metode yang kamu pilih.</p>
+
+    <div class="chip-row" id="metodeCairkanChips">
+      <button type="button" class="chip active" data-metode="ewallet" onclick="setMetodeCairkan('ewallet')">📱 E-Wallet</button>
+      <button type="button" class="chip" data-metode="bank" onclick="setMetodeCairkan('bank')">🏦 Transfer Bank</button>
+      <button type="button" class="chip" data-metode="tunai" onclick="setMetodeCairkan('tunai')">💵 Tunai</button>
+    </div>
+
+    <div id="fieldEwalletGroup">
+      <div class="field">
+        <label>Jenis E-Wallet</label>
+        <select id="inpEwalletJenis">
+          <option value="DANA">DANA</option>
+          <option value="OVO">OVO</option>
+          <option value="GoPay">GoPay</option>
+          <option value="ShopeePay">ShopeePay</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nomor E-Wallet</label>
+        <input type="text" id="inpEwalletNomor" placeholder="08xxxxxxxxxx">
+      </div>
+    </div>
+
+    <div id="fieldBankGroup" style="display:none;">
+      <div class="field">
+        <label>Nama Bank</label>
+        <input type="text" id="inpBankNama" placeholder="Contoh: BCA, BRI, BNI">
+      </div>
+      <div class="field">
+        <label>Nomor Rekening</label>
+        <input type="text" id="inpBankRek" placeholder="Nomor rekening">
+      </div>
+      <div class="field">
+        <label>Nama Pemilik Rekening</label>
+        <input type="text" id="inpBankNamaPemilik" placeholder="Sesuai buku tabungan">
+      </div>
+    </div>
+
+    <div class="hint-box" id="tunaiHint" style="display:none;margin-bottom:12px;">💵 Ambil uang tunai langsung ke petugas sekolah setelah pengajuan ditandai "Selesai".</div>
+
+    <div class="field">
+      <label>Jumlah Pencairan (Rp)</label>
+      <input type="number" id="inpCairkanJumlah" placeholder="Contoh: 20000">
+    </div>
+    <div class="field">
+      <label>Konfirmasi Password</label>
+      <input type="password" id="inpCairkanPw" placeholder="••••••••">
+    </div>
+    <div id="cairkanErr" class="err-msg"></div>
+    <button class="btn-main" onclick="prosesCairkan()">Ajukan Pencairan</button>
   </div>
 </div>
 
@@ -934,6 +1025,7 @@ function renderBeranda(){
           <div class="saldo-txt">Saldo Cash<b>Rp ${user.saldo.toLocaleString('id-ID')}</b></div>
           <button class="tukar-btn" onclick="openTukar()">Tukar Poin 💰</button>
         </div>
+        <button class="cairkan-cta" onclick="openCairkan()">🏧 Cairkan Saldo ke E-Wallet / Bank / Tunai</button>
       </div>`;
   } else {
     area.innerHTML = `
@@ -1084,7 +1176,11 @@ function renderQris(){
           <div class="step-num">3</div>
           <div class="step-mid"><h4>Poin otomatis masuk ke akunmu</h4><p>Cek halaman Beranda untuk melihat poin & saldo terbaru.</p></div>
         </div>
-      </div>`;
+      </div>
+
+      <div class="section-title"><h2>Riwayat Pencairan</h2><span class="tag">💵 Saldo Cash</span></div>
+      <div id="riwayatPencairanArea"></div>`;
+    loadRiwayatPencairan();
   } else {
     area.innerHTML = `
       <div class="section-title" style="margin-top:0;"><h2>Setor Sampah Siswa</h2><span class="tag">Petugas</span></div>
@@ -1093,7 +1189,11 @@ function renderQris(){
         <h3 style="margin:0;font-size:15px;">Pilih Siswa untuk Disetorkan</h3>
         <p>Pilih kelas lalu tap nama siswa untuk mencatat setoran sampahnya.</p>
         <button onclick="openPilihSiswa()">Pilih Siswa 👉</button>
-      </div>`;
+      </div>
+
+      <div class="section-title"><h2>Permintaan Pencairan</h2><span class="tag">⏳ Menunggu Diproses</span></div>
+      <div id="pencairanPendingArea"></div>`;
+    loadPencairanPending();
   }
 }
 function startScanner(){
@@ -1341,6 +1441,132 @@ async function prosesTukar(){
   closeOverlay('overlayTukar');
   toast(`Berhasil menukar ${jumlah} poin ke saldo!`);
   renderBeranda();
+}
+
+/* ---------------------- CAIRKAN SALDO (E-Wallet / Bank / Tunai) ---------------------- */
+let metodeCairkanAktif = 'ewallet';
+
+function openCairkan(){
+  const user = getCurrentUser();
+  if(!user){ toast('Silakan masuk terlebih dahulu 🔒'); openAuth('login'); return; }
+  metodeCairkanAktif = 'ewallet';
+  setMetodeCairkan('ewallet');
+  document.getElementById('inpEwalletNomor').value = '';
+  document.getElementById('inpBankNama').value = '';
+  document.getElementById('inpBankRek').value = '';
+  document.getElementById('inpBankNamaPemilik').value = '';
+  document.getElementById('inpCairkanJumlah').value = '';
+  document.getElementById('inpCairkanPw').value = '';
+  document.getElementById('cairkanErr').classList.remove('show');
+  openOverlay('overlayCairkan');
+}
+function setMetodeCairkan(m){
+  metodeCairkanAktif = m;
+  document.querySelectorAll('#metodeCairkanChips .chip').forEach(c=>c.classList.toggle('active', c.dataset.metode===m));
+  document.getElementById('fieldEwalletGroup').style.display = m==='ewallet' ? 'block' : 'none';
+  document.getElementById('fieldBankGroup').style.display = m==='bank' ? 'block' : 'none';
+  document.getElementById('tunaiHint').style.display = m==='tunai' ? 'block' : 'none';
+}
+async function prosesCairkan(){
+  const user = getCurrentUser();
+  const jumlah = parseInt(document.getElementById('inpCairkanJumlah').value);
+  const password = document.getElementById('inpCairkanPw').value;
+  const err = document.getElementById('cairkanErr');
+  err.classList.remove('show');
+
+  if(!jumlah || jumlah<=0){ err.textContent='Masukkan jumlah pencairan yang valid.'; err.classList.add('show'); return; }
+  if(jumlah > user.saldo){ err.textContent='Saldo kamu tidak mencukupi.'; err.classList.add('show'); return; }
+  if(!password){ err.textContent='Masukkan password untuk konfirmasi.'; err.classList.add('show'); return; }
+
+  let detail = '';
+  if(metodeCairkanAktif==='ewallet'){
+    const jenis = document.getElementById('inpEwalletJenis').value;
+    const nomor = document.getElementById('inpEwalletNomor').value.trim();
+    if(!nomor){ err.textContent='Isi nomor e-wallet kamu.'; err.classList.add('show'); return; }
+    detail = `${jenis} - ${nomor}`;
+  } else if(metodeCairkanAktif==='bank'){
+    const bank = document.getElementById('inpBankNama').value.trim();
+    const rek = document.getElementById('inpBankRek').value.trim();
+    const namaPemilik = document.getElementById('inpBankNamaPemilik').value.trim();
+    if(!bank || !rek || !namaPemilik){ err.textContent='Lengkapi data rekening bank.'; err.classList.add('show'); return; }
+    detail = `${bank} - ${rek} a.n ${namaPemilik}`;
+  } else {
+    detail = 'Ambil tunai di petugas sekolah';
+  }
+
+  const btn = document.querySelector('#overlayCairkan .btn-main');
+  const btnTxt = btn.textContent; btn.textContent = 'Mengirim...'; btn.disabled = true;
+
+  const res = await apiPost('requestPencairan', {username:user.username, password, jumlah, metode:metodeCairkanAktif, detail});
+
+  btn.textContent = btnTxt; btn.disabled = false;
+
+  if(res.error){ err.textContent = res.error; err.classList.add('show'); return; }
+
+  currentUserCache = res.user;
+  closeOverlay('overlayCairkan');
+  toast('Pengajuan pencairan terkirim, saldo sudah dipotong. Tunggu diproses petugas ✅');
+  renderBeranda();
+  if(document.getElementById('page-akun').classList.contains('active')) renderAkun();
+  if(document.getElementById('page-qris').classList.contains('active')) renderQris();
+}
+
+async function loadRiwayatPencairan(){
+  const user = getCurrentUser();
+  const area = document.getElementById('riwayatPencairanArea');
+  if(!area || !user) return;
+  area.innerHTML = `<p class="pencairan-empty">Memuat riwayat...</p>`;
+  const res = await apiGet('getPencairanSiswa', {username:user.username});
+  if(res.error){ area.innerHTML = `<p class="pencairan-empty">${res.error}</p>`; return; }
+  const list = res.pencairan || [];
+  if(!list.length){ area.innerHTML = `<p class="pencairan-empty">Belum ada riwayat pencairan.</p>`; return; }
+  area.innerHTML = list.map(p=>{
+    const metodeLabel = p.metode==='ewallet' ? '📱 E-Wallet' : p.metode==='bank' ? '🏦 Transfer Bank' : '💵 Tunai';
+    const statusClass = p.status==='Menunggu' ? 'menunggu' : p.status==='Selesai' ? 'selesai' : 'ditolak';
+    const waktu = p.timestamp ? new Date(p.timestamp).toLocaleString('id-ID', {dateStyle:'medium', timeStyle:'short'}) : '';
+    return `
+    <div class="pencairan-item">
+      <div class="top">
+        <div><h4>${metodeLabel}</h4><div class="meta">${p.detail}</div><div class="waktu">${waktu}</div></div>
+        <div class="jml">Rp ${p.jumlah.toLocaleString('id-ID')}</div>
+      </div>
+      <span class="badge-status ${statusClass}">${p.status}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Petugas: kelola permintaan pencairan yang masuk ---- */
+async function loadPencairanPending(){
+  const area = document.getElementById('pencairanPendingArea');
+  if(!area) return;
+  area.innerHTML = `<p class="pencairan-empty">Memuat permintaan...</p>`;
+  const res = await apiGet('getPencairanPending');
+  if(res.error){ area.innerHTML = `<p class="pencairan-empty">${res.error}</p>`; return; }
+  const list = res.pencairan || [];
+  if(!list.length){ area.innerHTML = `<p class="pencairan-empty">Tidak ada permintaan pencairan yang menunggu.</p>`; return; }
+  area.innerHTML = list.map(p=>{
+    const metodeLabel = p.metode==='ewallet' ? '📱 E-Wallet' : p.metode==='bank' ? '🏦 Transfer Bank' : '💵 Tunai';
+    return `
+    <div class="pencairan-item">
+      <div class="top">
+        <div><h4>${p.nama} · Kelas ${p.kelas}</h4><div class="meta">${metodeLabel} — ${p.detail}</div></div>
+        <div class="jml">Rp ${p.jumlah.toLocaleString('id-ID')}</div>
+      </div>
+      <div class="pencairan-actions">
+        <button class="btn-selesai" onclick="prosesPencairanAction('${p.id}','Selesai')">✔ Tandai Selesai</button>
+        <button class="btn-tolak" onclick="prosesPencairanAction('${p.id}','Ditolak')">✕ Tolak</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function prosesPencairanAction(id, status){
+  const petugas = getCurrentUser();
+  if(!petugas || petugas.role!=='petugas') return;
+  toast(status==='Selesai' ? 'Memproses pencairan...' : 'Menolak permintaan...');
+  const res = await apiPost('prosesPencairan', {id, petugas:petugas.username, status});
+  if(res.error){ toast(res.error); return; }
+  toast(status==='Selesai' ? 'Pencairan ditandai selesai ✅' : 'Permintaan ditolak, saldo dikembalikan ke siswa.');
+  loadPencairanPending();
 }
 
 /* ---------------------- AUTH ---------------------- */
